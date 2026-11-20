@@ -1,0 +1,29 @@
+# Render blueprint: one web service runs the site, the contact form and the AI assistant.
+# Create it with: Render dashboard -> New -> Blueprint -> pick the GitHub repository.
+services:
+  - type: web
+    name: hasan-portfolio
+    runtime: node
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build && npm run rag:warm
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY
+        value: 1
+      - key: MAIL_TO
+        value: hasan.x.abbasi@gmail.com
+      # secrets: you type these into the Render dashboard, they are never stored in the repository
+      - key: BREVO_API_KEY
+        sync: false
+      - key: BREVO_SENDER_EMAIL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      # your final address, for example https://hasan-portfolio.onrender.com (used for the canonical URL and sitemap at build time)
+      - key: SITE_URL
+        sync: false

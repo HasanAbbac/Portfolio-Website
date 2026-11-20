@@ -1,0 +1,8 @@
+<!-- href: #home | label: About this site -->
+# About this portfolio website
+
+## How the site is built
+This portfolio is Hasan's own project. It is a scroll-driven 3D website built with Vite, vanilla JavaScript and Three.js, with an Express and Nodemailer backend for the contact form. Scrolling walks the visitor through a Blender render pipeline: Vertices, Wireframe, Material, Render, Animation and Export, and each stage is a section of the site.
+
+## Features of the site
+The site has a live 3D avatar, an interactive 3D model viewer for Hasan's Blender models (with a wireframe and a material preview mode), playable browser games, gameplay videos of a Unity VR game and an Unreal Engine racing game, dark and light themes, seven languages (English, Arabic, Chinese, French, Spanish, Turkish and Urdu), a quick menu opened with the K key, a project search and filters, this AI assistant, and a contact form with spam protection.

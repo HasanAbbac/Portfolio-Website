@@ -1,0 +1,86 @@
+import './style.css';
+import { CONTENT } from './content.js';
+import { initUI } from './ui.js';
+import { setLang, initialLang, LANG_MENU } from './i18n.js';
+import { initTheme, getTheme } from './theme.js';
+import { initPalette } from './palette.js';
+import { initChat } from './chat.js';
+
+const canvas = document.getElementById('stage');
+const gizmo = document.getElementById('gizmo');
+
+let stage = null;
+// The 3D stage (Three.js) is loaded as its own chunk after the first paint, so the text and navigation appear immediately.
+async function startStage() {
+  try {
+    const { createStage } = await import('./stage.js');
+    stage = createStage(canvas);
+    stage.setTheme(getTheme());
+    stage.resize();
+  } catch (err) {
+    console.warn('WebGL unavailable, showing the page without the 3D stage.', err);
+    document.documentElement.classList.add('no-webgl');
+  }
+}
+
+// language first, so everything builds in the right language
+const sel = document.getElementById('langSel');
+sel.innerHTML = LANG_MENU.map((l) => `<option value="${l.code}" lang="${l.code}">${l.name}</option>`).join('');
+setLang(initialLang(), false);
+sel.value = document.documentElement.lang;
+const ui = initUI(CONTENT);
+const theme = initTheme(() => stage);
+initPalette({ content: CONTENT, ui, theme });
+initChat({ ui });
+sel.addEventListener('change', () => setLang(sel.value));
+window.addEventListener('langchange', (e) => { sel.value = e.detail; ui.measure(); });
+// layout can shift when text length changes
+window.addEventListener('langchange', () => setTimeout(() => ui.measure(), 120));
+
+const mouse = { x: 0, y: 0 };
+window.addEventListener('pointermove', (e) => {
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -((e.clientY / window.innerHeight) * 2 - 1);
+}, { passive: true });
+window.addEventListener('resize', () => stage && stage.resize());
+
+// Click the avatar: it waves or changes pose. Ignore clicks that land on UI.
+const UI_SEL = 'a,button,input,textarea,select,label,dialog,.props,.node,.card,.export,.dope,.graph,.pipe,.top,.skills-head,.proj-head,.exp-head,.col,.queue,.pf';
+window.addEventListener('click', (e) => {
+  if (!stage || e.target.closest(UI_SEL)) return;
+  if (stage.pick(e.clientX, e.clientY)) stage.poke();
+});
+let hoverT = 0;
+window.addEventListener('pointermove', (e) => {
+  const n = performance.now();
+  if (!stage || n - hoverT < 60) return;
+  hoverT = n;
+  const over = !e.target.closest(UI_SEL) && stage.pick(e.clientX, e.clientY);
+  document.documentElement.classList.toggle('avatar-hover', over);
+}, { passive: true });
+
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  const idx = ui.getIdx();
+  ui.tick(dt, idx);
+  if (stage) {
+    stage.update(dt, now / 1000, idx, mouse, ui.timelinePose());
+    stage.drawGizmo(gizmo);
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+// start the 3D stage right after the first paint
+// On phones the heavy 3D setup waits until the browser is idle (or the visitor touches the page), so reading and scrolling are not blocked.
+requestAnimationFrame(() => setTimeout(() => {
+  if (!window.matchMedia('(max-width: 860px)').matches) return startStage();
+  let started = false;
+  const go = () => { if (started) return; started = true; startStage(); };
+  const idle = window.requestIdleCallback || ((f) => setTimeout(f, 1200));
+  window.addEventListener('pointerdown', go, { once: true, passive: true });
+  window.addEventListener('scroll', go, { once: true, passive: true });
+  idle(go, { timeout: 4500 });
+}, 0));

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D Target Clicker</title>
+    <script type="module" crossorigin src="./assets/index-wHccuU6r.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CT1PxKdg.css">
+  </head>
+  <body>
+    <div class="app">
+      <header class="header">
+        <h1>3D Target Clicker</h1>
+        <p id="status">Loading...</p>
+      </header>
+
+      <main class="layout">
+        <section class="stage" aria-label="3D game area">
+          <div id="scene-container"></div>
+
+          <!-- Hidden while playing, so it never blocks clicks on the targets -->
+          <div id="overlay" class="overlay">
+            <div id="overlay-howto" class="panel">
+              <h2>How to play</h2>
+              <ol class="steps">
+                <li><span class="n">1</span><span>Press <strong>Start Game</strong>. You have <span id="howto-seconds"></span> seconds.</span></li>
+                <li><span class="n">2</span><span>Click the shapes before they vanish. Rarer shapes are worth more points.</span></li>
+                <li><span class="n">3</span><span>Empty clicks count as misses. Accuracy is hits divided by all your clicks.</span></li>
+              </ol>
+              <table class="points" aria-label="Points and spawn chance for each shape">
+                <thead><tr><th>Shape</th><th>Points</th><th>Chance</th></tr></thead>
+                <tbody id="points-body"></tbody>
+              </table>
+            </div>
+            <div id="overlay-result" class="panel" hidden>
+              <h2>Game over</h2>
+              <p id="final-stars" class="stars" aria-hidden="true"></p>
+              <p id="final-rank" class="rank"></p>
+              <p class="final-label">Final score</p>
+              <p id="final-score">0</p>
+              <p id="final-stats"></p>
+              <p class="final-hint">Press Restart to play again.</p>
+            </div>
+          </div>
+        </section>
+
+        <aside class="dashboard" aria-label="Game dashboard">
+          <div class="card card-score"><div class="row"><span class="label">Score</span><span class="value" id="score">0</span></div></div>
+          <div class="card card-timer"><div class="row"><span class="label">Timer</span><span class="value" id="timer">60</span></div><div class="bar"><i id="timer-bar"></i></div></div>
+          <div class="card card-hits"><div class="row"><span class="label">Hits</span><span class="value" id="hits">0</span></div></div>
+          <div class="card card-miss"><div class="row"><span class="label">Misses</span><span class="value" id="misses">0</span></div></div>
+          <div class="card card-acc"><div class="row"><span class="label">Accuracy</span><span class="value" id="accuracy">0%</span></div><div class="bar"><i id="accuracy-bar"></i></div></div>
+
+          <p class="howto">Click the shapes before they vanish. Empty clicks count as misses.</p>
+
+          <div class="buttons">
+            <button id="start-btn" class="btn btn-primary">Start Game</button>
+            <button id="restart-btn" class="btn btn-secondary">Restart</button>
+            <button id="mute-btn" class="btn btn-ghost" aria-pressed="false">Sound: on</button>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+  </body>
+</html>

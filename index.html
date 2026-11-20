@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hasan Abbasi | 3D Artist</title>
+<meta name="description" content="Portfolio of Hasan Abbasi, a 3D artist working in modelling, animation and game development with Blender, Unity and Unreal Engine.">
+<meta name="theme-color" content="#0f1d26">
+<meta property="og:title" content="Hasan Abbasi | 3D Artist">
+<meta property="og:description" content="Modelling, animation and game development. Watch the portfolio render itself as you scroll.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f1d26'/%3E%3Cpath d='M16 5l9 5.2v10.6L16 26l-9-5.2V10.2z' fill='none' stroke='%23ff9f7e' stroke-width='2.2'/%3E%3Cpath d='M16 5v10.5m0 0l9 5.3m-9-5.3l-9 5.3' stroke='%23ff9f7e' stroke-width='1.6' fill='none'/%3E%3C/svg%3E">
+<link rel="preload" href="/fonts/manrope-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/unbounded-500-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/fonts/fonts.css">
+<script src="/flag.js"></script>
+</head>
+<body>
+<a class="skip" href="#main" data-i18n="skip">Skip to content</a>
+
+<canvas id="stage" aria-hidden="true"></canvas>
+<div class="backdrop" aria-hidden="true"></div>
+
+<header class="top">
+  <a class="brand" href="#home" aria-label="Hasan Abbasi, home" data-i18n-attr="aria-label:brand.aria">
+    <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><path d="M16 4l10 5.8v12.4L16 28 6 22.2V9.8z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 4v12m0 0l10 6.2M16 16L6 22.2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+    <span>Hasan Abbasi</span>
+  </a>
+  <nav class="nav" id="nav" aria-label="Main" data-i18n-attr="aria-label:nav.aria">
+    <a href="#home" data-i="0" data-i18n="nav.home">Home</a>
+    <a href="#about" data-i="1" data-i18n="nav.about">About</a>
+    <a href="#skills" data-i="2" data-i18n="nav.skills">Skills</a>
+    <a href="#projects" data-i="3" data-i18n="nav.projects">Projects</a>
+    <a href="#experience" data-i="4" data-i18n="nav.experience">Experience</a>
+    <a href="#contact" data-i="5" data-i18n="nav.contact">Contact</a>
+  </nav>
+  <div class="tools">
+    <button class="tool-btn chat-btn" id="chatBtn" type="button" hidden aria-haspopup="dialog" aria-expanded="false" aria-controls="chatPanel" data-i18n-attr="aria-label:chat.open;title:chat.open"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 4V6a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="9" cy="11" r="1.1" fill="currentColor"/><circle cx="12.5" cy="11" r="1.1" fill="currentColor"/><circle cx="16" cy="11" r="1.1" fill="currentColor"/></svg></button>
+    <button class="tool-btn" id="cmdBtn" type="button" aria-haspopup="dialog" data-i18n-attr="aria-label:cmd.open;title:cmd.open"><kbd>K</kbd></button>
+    <button class="tool-btn" id="themeBtn" type="button" data-i18n-attr="aria-label:theme.toggle;title:theme.toggle">
+      <svg class="ic-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a.7.7 0 0 0-.9-.9A10 10 0 1 0 21.4 15.5a.7.7 0 0 0-.9-.9Z"/></svg>
+      <svg class="ic-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <label class="lang-wrap"><span class="vh" data-i18n="lang.label">Language</span><select id="langSel" class="lang-sel"></select></label>
+  </div>
+  <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="nav"><span></span><span></span></button>
+</header>
+
+<canvas id="gizmo" class="gizmo" width="168" height="168" aria-hidden="true"></canvas>
+
+<nav class="pipe" id="pipe" aria-label="Render pipeline progress" data-i18n-attr="aria-label:pipe.aria">
+  <div class="pipe-rail"><i id="pipeFill"></i></div>
+  <ol>
+    <li><button data-i="0"><b>01</b><span data-i18n="st.vertices">Vertices</span></button></li>
+    <li><button data-i="1"><b>02</b><span data-i18n="st.wireframe">Wireframe</span></button></li>
+    <li><button data-i="2"><b>03</b><span data-i18n="st.material">Material</span></button></li>
+    <li><button data-i="3"><b>04</b><span data-i18n="st.render">Render</span></button></li>
+    <li><button data-i="4"><b>05</b><span data-i18n="st.animation">Animation</span></button></li>
+    <li><button data-i="5"><b>06</b><span data-i18n="st.export">Export</span></button></li>
+  </ol>
+</nav>
+
+<main id="main">
+
+  <!-- 01 HOME -->
+  <section class="sec sec-home" id="home" aria-labelledby="h-home">
+    <div class="col">
+      <p class="tag" data-i18n="hero.tag">3D artist &middot; animator &middot; game developer</p>
+      <h1 id="h-home" aria-label="Hasan Abbasi"><span class="line" aria-hidden="true"><span class="w">Hasan</span></span><span class="line" aria-hidden="true"><span class="w">Abbasi</span></span></h1>
+      <p class="lead" data-i18n="hero.lead">I model and animate 3D characters and worlds, then build them into games in Unity and Unreal Engine.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="#about" data-i18n="hero.watch">Watch it render</a>
+        <a class="btn" href="#contact" data-i18n="hero.hello">Say hello</a>
+      </div>
+      <p class="meta" data-i18n="hero.meta">BS Computer Science &middot; Gaming and Animation &middot; NED University</p>
+      <p class="hero-hint mono" data-i18n="hero.hint">Tip: click the avatar, or press K for the quick menu</p>
+    </div>
+    <a class="scroll-cue" href="#about" aria-label="Scroll down"><i></i><span data-i18n="hero.scroll">Scroll</span></a>
+  </section>
+
+  <!-- 02 ABOUT -->
+  <section class="sec sec-about" id="about" aria-labelledby="h-about">
+    <div class="col rv">
+      <p class="eyebrow" data-i18n="about.eyebrow">02 &middot; Wireframe</p>
+      <h2 id="h-about" data-i18n-html="about.h2">The structure<br>under the surface</h2>
+      <p data-i18n="about.p1">I'm a 3D artist at heart. Modelling and animation are where I spend most of my time, mostly in Blender, where I'm most at home.</p>
+      <p data-i18n="about.p2">I also build games. I've worked in both Unity and Unreal Engine and made games in each, so I care about how a model behaves once it leaves the viewport and lands in an engine.</p>
+      <p data-i18n="about.p3">I'm studying BS Computer Science (Gaming and Animation) at NED University, and I've completed the CEGA game development courses and the Google AI Professional Certificate. I'm looking to bring my 3D art and programming skills to a team building engaging games.</p>
+      <div class="cv-cta">
+        <a class="btn btn-primary" href="/Hasan_Abbasi_CV.pdf" target="_blank" rel="noopener" data-i18n="about.view">View CV</a>
+        <a class="btn" href="/Hasan_Abbasi_CV.pdf" download="Hasan_Abbasi_CV.pdf" data-i18n="about.download">Download CV</a>
+      </div>
+    </div>
+    <div class="props rv" role="group" aria-label="Properties" data-i18n-attr="aria-label:props.aria">
+      <header><i></i><span data-i18n="props.header">Object Properties</span></header>
+      <dl>
+        <div><dt data-i18n="p.name">Name</dt><dd>Hasan Abbasi</dd></div>
+        <div><dt data-i18n="p.discipline">Discipline</dt><dd data-i18n="v.discipline">3D modelling, animation</dd></div>
+        <div><dt data-i18n="p.soft">Soft skills</dt><dd data-i18n="v.soft">Problem solving, critical thinking, teamwork, open to feedback</dd></div>
+        <div><dt data-i18n="p.int">Interests</dt><dd data-i18n="v.int">Game development, animation</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- 03 SKILLS -->
+  <section class="sec sec-skills" id="skills" aria-labelledby="h-skills">
+    <div class="skills-head rv">
+      <p class="eyebrow" data-i18n="skills.eyebrow">03 &middot; Material</p>
+      <h2 id="h-skills" data-i18n="skills.h2">Skills, wired together</h2>
+      <p data-i18n="skills.p">Every skill is a node, wired through its group into one material output. Hover or focus a node to follow its wire.</p>
+    </div>
+    <div class="graph rv" id="graph"></div>
+  </section>
+
+  <!-- 04 PROJECTS -->
+  <section class="sec sec-projects" id="projects" data-hold="1" aria-labelledby="h-projects">
+    <div class="proj-wrap">
+      <div class="proj-head rv">
+        <p class="eyebrow" data-i18n="projects.eyebrow">04 &middot; Render</p>
+        <h2 id="h-projects" data-i18n="projects.h2">Render queue</h2>
+        <p id="projLead" data-i18n="projects.lead">Finished renders, game builds and breakdowns will land here. The queue is being filled right now.</p>
+      </div>
+      <div class="pf rv" id="pf" role="group" aria-label="Filter projects" data-i18n-attr="aria-label:f.aria" hidden></div>
+      <div class="ptools rv" id="ptools" hidden></div>
+      <div class="queue rv" id="queue" aria-live="polite"></div>
+      <p class="pmore" id="pmore" hidden><button class="btn btn-small" type="button" id="pmoreBtn"></button></p>
+    </div>
+  </section>
+
+  <!-- 05 EDUCATION AND EXPERIENCE -->
+  <section class="sec sec-exp" id="experience" aria-labelledby="h-exp">
+    <div class="exp-head rv">
+      <p class="eyebrow" data-i18n="exp.eyebrow">05 &middot; Animation</p>
+      <h2 id="h-exp" data-i18n="exp.h2">Education and experience</h2>
+      <p data-i18n="exp.p">This is a dope sheet. Drag the playhead or press play, and the avatar acts out every keyframe.</p>
+    </div>
+    <div class="dope rv" id="dope"></div>
+  </section>
+
+  <!-- 06 CONTACT -->
+  <section class="sec sec-contact" id="contact" aria-labelledby="h-contact">
+    <div class="col rv">
+      <p class="eyebrow" data-i18n="contact.eyebrow">06 &middot; Export</p>
+      <h2 id="h-contact" data-i18n-html="contact.h2">Let's make<br>something</h2>
+      <p data-i18n="contact.p">Got a project, a collaboration or a job in mind? Send a message and I'll write back.</p>
+      <div class="reach">
+        <a class="reach-i wide" id="rEmail" href="#"><span data-i18n="r.email">Email</span><b id="rEmailT"></b></a>
+        <a class="reach-i wide" id="rPhone" href="#" target="_blank" rel="noopener"><span data-i18n="r.phone">Phone</span><b id="rPhoneT"></b></a>
+        <a class="reach-i" id="rGit" href="#" target="_blank" rel="noopener"><span>GitHub</span><b>HasanAbbac</b></a>
+        <a class="reach-i" id="rLin" href="#" target="_blank" rel="noopener"><span>LinkedIn</span><b>hasan-abbac</b></a>
+      </div>
+      <div class="cv-cta cv-contact"><a class="btn" href="/Hasan_Abbasi_CV.pdf" target="_blank" rel="noopener" data-i18n="about.view">View CV</a><a class="btn" href="/Hasan_Abbasi_CV.pdf" download="Hasan_Abbasi_CV.pdf" data-i18n="about.download">Download CV</a></div>
+      <a class="btn btn-wa" id="waBtn" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M4 3h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/></svg><span data-i18n="contact.wa">Chat on WhatsApp</span></a>
+    </div>
+    <form class="export rv" id="contactForm" novalidate autocomplete="on">
+      <header><i></i><span data-i18n="form.header">Export Message</span> <small>.msg</small></header>
+      <div class="fields">
+        <div class="field"><label for="cName" data-i18n="f.name">Name</label><input id="cName" name="name" type="text" autocomplete="name" maxlength="80" required><span class="err" id="eName"></span></div>
+        <div class="field"><label for="cEmail" data-i18n="f.email">Email</label><input id="cEmail" name="email" type="email" autocomplete="email" maxlength="120" required><span class="err" id="eEmail"></span></div>
+        <div class="field"><label for="cSubject" data-i18n="f.subject">Subject</label><input id="cSubject" name="subject" type="text" maxlength="120" required><span class="err" id="eSubject"></span></div>
+        <div class="field"><label for="cMessage" data-i18n="f.message">Message</label><textarea id="cMessage" name="message" rows="4" maxlength="3000" required></textarea><span class="err" id="eMessage"></span></div>
+        <p class="privacy-note" data-i18n="form.privacy">Your name, email and message are used only to send this email to Hasan through Brevo. This site does not store them. Questions to the assistant are processed by Google Gemini.</p>
+        <div class="hp" aria-hidden="true"><label for="cCompany">Company</label><input id="cCompany" name="company" type="text" tabindex="-1" autocomplete="off"></div>
+      </div>
+      <footer>
+        <div class="bar" aria-hidden="true"><i id="expBar"></i></div>
+        <div class="row">
+          <p class="status" id="formStatus" role="status" aria-live="polite" data-i18n="form.ready">Ready to export.</p>
+          <button class="btn btn-primary" type="submit" id="sendBtn" data-i18n="form.send">Send message</button>
+        </div>
+      </footer>
+    </form>
+  </section>
+
+</main>
+
+<dialog class="modal" id="pm" aria-labelledby="pmTitle">
+  <div class="pm-card">
+    <header class="pm-top"><i></i><span class="mono" id="pmType"></span><button class="pm-x" type="button" id="pmClose" aria-label="Close" data-i18n-attr="aria-label:pm.close">&times;</button></header>
+    <div class="pm-body">
+      <div class="pm-media" id="pmMedia"></div>
+      <div class="pm-tabs" id="pmTabs" role="tablist" aria-label="Project views" data-i18n-attr="aria-label:pm.views"></div>
+      <div class="pm-info">
+        <h3 id="pmTitle"></h3>
+        <p id="pmText"></p>
+        <ul class="chips" id="pmTags"></ul>
+        <p class="links" id="pmLinks"></p>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="cmd" id="cmd" aria-labelledby="cmdTitle">
+  <div class="cmd-card">
+    <h2 class="vh" id="cmdTitle" data-i18n="cmd.title">Quick menu</h2>
+    <div class="cmd-in"><kbd>K</kbd><input id="cmdQ" type="text" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="true" aria-controls="cmdList" data-i18n-attr="placeholder:cmd.ph;aria-label:cmd.ph"></div>
+    <ul class="cmd-list" id="cmdList" role="listbox"></ul>
+    <p class="cmd-keys" data-i18n="cmd.keys">&uarr;&darr; move &middot; Enter open &middot; Esc close</p>
+  </div>
+</dialog>
+
+<footer class="foot">
+  <p class="foot-copy">&copy; <span id="yr"></span> Hasan Abbasi. <span data-i18n="foot.rights">All rights reserved.</span></p>
+  <p class="foot-legal" data-i18n="foot.legal">Apple, MacBook and AirPods are trademarks of Apple Inc. The related models are independent fan-made studies, not affiliated with or endorsed by Apple. Built with Three.js (MIT licence).</p>
+</footer>
+
+
+<button class="chat-fab btn btn-primary" id="chatFab" type="button" hidden aria-haspopup="dialog" aria-controls="chatPanel"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 4V6a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="9" cy="11" r="1.1" fill="currentColor"/><circle cx="12.5" cy="11" r="1.1" fill="currentColor"/><circle cx="16" cy="11" r="1.1" fill="currentColor"/></svg><span data-i18n="chat.fab">Ask AI</span></button>
+
+<section class="chat" id="chatPanel" role="dialog" aria-modal="false" aria-labelledby="chatTitle" hidden>
+  <div class="chat-h">
+    <div><b id="chatTitle" data-i18n="chat.title">Ask about Hasan</b><small data-i18n="chat.sub">AI assistant. Answers come from his CV and projects.</small></div>
+    <button class="chat-x" id="chatClose" type="button" data-i18n-attr="aria-label:chat.close;title:chat.close"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+  </div>
+  <div class="chat-log" id="chatLog" role="log" aria-live="polite" aria-relevant="additions"></div>
+  <div class="chat-sugg" id="chatSugg"></div>
+  <form class="chat-form" id="chatForm" autocomplete="off">
+    <label class="vh" for="chatInput" data-i18n="chat.label">Your question</label>
+    <input id="chatInput" type="text" maxlength="400" autocomplete="off" data-i18n-attr="placeholder:chat.ph" placeholder="Ask about skills, projects or education">
+    <button class="btn btn-primary" type="submit" id="chatSend" data-i18n="chat.send">Send</button>
+  </form>
+  <p class="chat-note" data-i18n="chat.note">Answers come only from Hasan's CV and portfolio and can be wrong. For anything else, use the contact form.</p>
+</section>
+
+<noscript><p class="noscript">This portfolio uses 3D graphics and needs JavaScript. You can still email hasan.x.abbasi@gmail.com.</p></noscript>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
