@@ -4,7 +4,9 @@ import { CONTENT } from './src/content.js';
 // Set SITE_URL (for example https://your-domain.com) when you build, and the build adds the canonical URL,
 // absolute social-preview links, sitemap.xml and a robots.txt that points to it. Without it, the build still
 // produces a valid robots.txt and the social tags use relative paths.
-const SITE = (process.env.SITE_URL || '').trim().replace(/\/+$/, '');
+// On Vercel the production address is provided automatically (VERCEL_PROJECT_PRODUCTION_URL), so SITE_URL is optional there.
+const vercelHost = (process.env.VERCEL_PROJECT_PRODUCTION_URL || '').trim().replace(/^https?:\/\//, '').replace(/\/+$/, '');
+const SITE = (process.env.SITE_URL || (vercelHost && process.env.VERCEL_ENV === 'production' ? `https://${vercelHost}` : '')).trim().replace(/\/+$/, '');
 if (!SITE && process.env.NODE_ENV === 'production') console.warn('[build] SITE_URL is not set: the canonical URL, sitemap.xml and social-preview links will be missing. Set it to your live address before the final build.');
 const TITLE = 'Hasan Abbasi | 3D Artist';
 const DESC = 'Portfolio of Hasan Abbasi, a 3D artist working in modelling, animation and game development with Blender, Unity and Unreal Engine.';

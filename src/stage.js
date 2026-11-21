@@ -298,6 +298,30 @@ export function createStage(canvas) {
   }
   function poke() { pk.name = POKES[pokeN++ % POKES.length]; pk.t = 0; }
 
+  // ---- orbit: drag the avatar to turn it around its vertical (Y) axis. On release it eases back to the angle it
+  // would have had anyway (the same resting rotation as before), so scrolling and the mouse-follow keep working.
+  const orbit = { yaw: 0, dragging: false, x: 0 };
+  const YAW_PER_PX = 0.011; // about 570 px of drag for one full turn
+  function orbitStart(cx, cy) {
+    if (!pick(cx, cy)) return false;
+    orbit.dragging = true;
+    orbit.x = cx;
+    return true;
+  }
+  function orbitMove(cx) {
+    if (!orbit.dragging) return 0;
+    const dx = cx - orbit.x;
+    orbit.x = cx;
+    orbit.yaw += dx * YAW_PER_PX;
+    return dx;
+  }
+  function orbitEnd() {
+    orbit.dragging = false;
+    // take the shortest way back: a spin of 400 degrees returns by 40, not by 400
+    orbit.yaw = ((orbit.yaw + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
+    if (reduce) orbit.yaw = 0; // no easing animation for people who asked for less motion
+  }
+
   let isLight = false;
   function setTheme(mode) {
     isLight = mode === 'light';
@@ -418,7 +442,8 @@ export function createStage(canvas) {
     // turn: face the text a little, drift with scroll, follow the mouse, face front during animation
     const face = -Math.max(-1, Math.min(1, lx / (hw * 0.6 + 0.001))) * 0.38;
     const rotBase = face + Math.sin(I * 1.15) * 0.45 + mx * 0.4;
-    avatar.rotation.y = reduce ? face : lerp(rotBase, mx * 0.2, Math.max(tlw * 0.8, pw * 0.85));
+    if (!orbit.dragging) orbit.yaw += (0 - orbit.yaw) * (1 - Math.exp(-dt * 3.2)); // ease back to the default rotation
+    avatar.rotation.y = (reduce ? face : lerp(rotBase, mx * 0.2, Math.max(tlw * 0.8, pw * 0.85))) + orbit.yaw;
 
     // export bounding box
     bbox.material.opacity = ramp(I, 4.5, 5.0) * 0.7;
@@ -473,5 +498,5 @@ export function createStage(canvas) {
     });
   }
 
-  return { update, resize, drawGizmo, stats: rig.stats, renderer, pick, poke, setTheme };
+  return { update, resize, drawGizmo, stats: rig.stats, renderer, pick, poke, setTheme, orbitStart, orbitMove, orbitEnd };
 }

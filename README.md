@@ -4,10 +4,10 @@ A scroll-driven 3D portfolio built around one idea: **scrolling walks you throug
 A low-poly avatar is revealed layer by layer as you scroll (Vertices, Wireframe, Material, Render, Animation, Export) and each stage is a section of the site.
 
 **Sections:** Home, About, Skills (node graph), Projects (gallery with 3D viewer and playable games), Education and experience (dope-sheet timeline), Contact (export dialog).
-**Also:** an AI assistant that answers questions about Hasan from his own documents (RAG), project search with category, tool and sort filters, dark and light themes, 7 languages (English, Arabic, Chinese, French, Spanish, Turkish, Urdu), a quick menu (press K), keyboard and screen-reader support.
+**Also:** an AI assistant that answers questions about Hasan from his own documents (RAG) in all seven site languages, a draggable avatar (drag it sideways to turn it; it eases back to its resting pose), project search with category, tool and sort filters, dark and light themes, 7 languages (English, Arabic, Chinese, French, Spanish, Turkish, Urdu), a quick menu (press K), keyboard and screen-reader support.
 
 ## Tech
-Vite 6, vanilla JS (ES modules), Three.js, Express, Nodemailer, Helmet, express-rate-limit, the Anthropic SDK and a local embedding model (Transformers.js) for the assistant. Tests use Node's built-in test runner.
+Vite 6, vanilla JS (ES modules), Three.js, Express (local and Render) or Vercel serverless functions (`api/`), Nodemailer, Helmet, express-rate-limit, Gemini (or the Anthropic SDK) for answers and a local embedding model (Transformers.js, optional) for retrieval. Tests use Node's built-in test runner.
 
 ## Run it
 Requires **Node.js 18.18 or newer** (https://nodejs.org).
@@ -47,7 +47,7 @@ npm run rag:build         # (re)build the vector index after editing knowledge/*
 npm run rag:eval          # measure retrieval quality
 npm run rag:ask -- "Which tools does Hasan use?"
 ```
-Set `ANTHROPIC_API_KEY` in `.env` to have Claude write the answers; without it the assistant quotes the best-matching passage. The first run downloads a 23 MB embedding model (needs internet once).
+Set `GEMINI_API_KEY` (or `ANTHROPIC_API_KEY`) in `.env` to have a model write the answers; without a key the assistant quotes the best-matching passage. Questions in Arabic, Chinese, French, Spanish, Turkish or Urdu are translated to English for the search and answered in the page language. The first run downloads a 23 MB embedding model (needs internet once).
 
 ## Proof that email arrives
 `npm run mail:test` sends one real test message and logs the mail server's receipt; the steps and the evidence checklist are in **`docs/EMAIL-PROOF.md`**.
@@ -73,8 +73,11 @@ Optional on any project: `year`, `role` (shown beside the type in the popup), `l
 - **Unity export:** Build Profiles, Web, and in Publishing Settings set *Compression Format* to **Disabled** (or enable *Decompression Fallback*), otherwise the built-in server cannot serve it.
 - **Redirect instead of a popup:** add `href: 'https://...'` and the card opens that link in a new tab.
 
+## CV
+`public/Hasan_Abbasi_CV.pdf` is built from `scripts/cv/cv.html`, which uses the site's own colours and fonts. Edit that file and run `npm run cv:build` (needs Chrome or Edge installed).
+
 ## Fonts and images
 Latin fonts (Unbounded, Manrope, DM Mono) are self-hosted in `public/fonts/`. Arabic, Urdu and Chinese fonts load from Google Fonts only when that language is chosen. The social-sharing image is `public/og-image.jpg` (1200 by 630).
 
 ## Deploying
-See `DEPLOY.md` (Render blueprint in `render.yaml`). `npm run mail:status` shows Brevo's delivered/opened events for sent messages. `npm run lint` checks the code.
+See `DEPLOY.md` (Vercel: `vercel.json` and `api/`; Render blueprint in `render.yaml`). `npm run mail:status` shows Brevo's delivered/opened events for sent messages. `npm run lint` checks the code.

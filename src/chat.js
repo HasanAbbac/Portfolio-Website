@@ -4,6 +4,9 @@ import { t, getLang } from './i18n.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const SECTION_IDX = { '#home': 0, '#about': 1, '#skills': 2, '#projects': 3, '#experience': 4, '#contact': 5 };
+const SECTION_KEY = { '#home': 'nav.home', '#about': 'nav.about', '#skills': 'nav.skills', '#projects': 'nav.projects', '#experience': 'nav.experience', '#contact': 'nav.contact' };
+// Source buttons use the page language: section names come from the translations, project names stay as they are.
+const sourceLabel = (s) => (s.projectIndex != null ? s.label : s.href in SECTION_KEY ? t(SECTION_KEY[s.href]) : (s.label || s.title));
 
 export async function initChat({ ui }) {
   const panel = $('#chatPanel');
@@ -52,7 +55,7 @@ export async function initChat({ ui }) {
       sources.forEach((s) => {
         const b = document.createElement('button');
         b.type = 'button';
-        b.textContent = (s.title || s.label).replace(/^Hasan Abbasi /, '');
+        b.textContent = sourceLabel(s);
         b.addEventListener('click', () => goToSource(s));
         row.appendChild(b);
       });

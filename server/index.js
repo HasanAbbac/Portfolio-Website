@@ -9,7 +9,7 @@ import nodemailer from 'nodemailer';
 import { validate, isTooFast, buildMail, clean } from './mail.js';
 import { loadIndex } from './rag/store.js';
 import { embed, warmup } from './rag/embed.js';
-import { createLlm } from './rag/llm.js';
+import { createLlm, createClaudeRewriter } from './rag/llm.js';
 import { pickAnswerer } from './rag/gemini.js';
 import { createBrevo } from './brevo.js';
 import { answerQuestion } from './rag/answer.js';
@@ -181,8 +181,9 @@ const chatLimiter = rateLimit({
 });
 const KEYWORD_ONLY = process.env.RAG_RETRIEVAL === 'lexical'; // skip the embedding model (used by the tests)
 let answerer;
-const getAnswerer = () => (answerer === undefined ? (answerer = pickAnswerer(createLlm)) : answerer); // Gemini, else Claude, else none
+const getAnswerer = () => (answerer === undefined ? (answerer = pickAnswerer(createLlm, createClaudeRewriter)) : answerer); // Gemini, else Claude, else none
 const getLlm = () => { const a = getAnswerer(); return a ? a.fn : null; };
+const getRewrite = () => { const a = getAnswerer(); return a ? a.rewrite : null; };
 
 // Shared budget for the language model across ALL visitors in the last hour. When it is used up the assistant keeps
 // answering, but by quoting the best passage from the documents instead of calling the model (no quota, no cost).
@@ -212,7 +213,8 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
     .map((m) => ({ role: m.role, content: clean(m.content, 600) }));
   const index = loadIndex();
   if (!index) return res.status(503).json({ error: 'The assistant is not set up yet. Please use the contact form instead.' });
-  const deps = { index, embedFn: KEYWORD_ONLY ? null : embed, llm: modelAllowed() ? getLlm() : null };
+  const useModel = modelAllowed();
+  const deps = { index, embedFn: KEYWORD_ONLY ? null : embed, llm: useModel ? getLlm() : null, rewrite: useModel ? getRewrite() : null };
   try {
     let r;
     try {

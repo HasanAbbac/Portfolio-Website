@@ -559,7 +559,10 @@ h2 { font-size: clamp(1.8rem, 3.7vw, 3.05rem); font-weight: 700; line-height: 1.
 .pm-ctrl .btn[aria-pressed='true'] { background: var(--orange); color: var(--orange-ink); }
 
 /* ---------- avatar click ---------- */
-html.avatar-hover, html.avatar-hover body { cursor: pointer; }
+html.avatar-hover, html.avatar-hover body { cursor: grab; }
+html.avatar-drag, html.avatar-drag body { cursor: grabbing; user-select: none; }
+/* horizontal drags are left to the page so the avatar can be turned by touch; vertical scrolling and pinch-zoom still work */
+body { touch-action: pan-y pinch-zoom; }
 
 /* ---------- fonts for other scripts ---------- */
 html[lang='ar'], html[lang='ur'] { --body: 'Noto Sans Arabic', 'Manrope', 'Segoe UI', system-ui, sans-serif; --display: 'Noto Sans Arabic', 'Segoe UI', system-ui, sans-serif; }

@@ -64,6 +64,12 @@ model is instructed to answer `NOT_FOUND` for such questions. The Gemini and Cla
 responses, error codes, and that an out-of-scope question never reaches the model). They have **not** been run against the live APIs in this
 repository's tests because that needs your key; after adding `GEMINI_API_KEY`, ask the chat a few real questions once to confirm.
 
+## Languages (English, Arabic, Chinese, French, Spanish, Turkish, Urdu)
+The documents are English, so a question in another language is translated to English by the model (one short call, `REWRITE_PROMPT` in `server/rag/llm.js`), the English question is used to retrieve passages, and the answer is written in the page language (`<reply_language>`). Fixed replies (greetings, thanks, "who are you", private topics, "I don't have that information") exist in all seven languages, and the private-topic filter recognises phone, salary, marriage, home address and age in all of them. If the translation step fails and the question is in Arabic, Chinese or Urdu (which keyword search cannot read), the assistant answers with the fixed "I don't have that information" reply rather than guessing. English questions never need the translation call.
+
+## Retrieval on Vercel (keyword search)
+Serverless functions cannot run the local embedding model, so on Vercel retrieval is keyword search (`server/rag/lexical.js`): words are reduced to a rough stem ("studies", "studying" and "study" match) and a few synonym groups count as the same word ("certifications" matches "certificate" and "course"). A word the documents never use (for example the spelling "Hassan") is weighed like the most common word of its group so it cannot dominate. On the 33 in-scope and 14 out-of-scope questions in `scripts/rag-eval.mjs` plus five extra natural-language questions, keyword retrieval now answers 30 of 33 in-scope questions at the refusal threshold (it answered 28 before the stems and synonyms) and the three misses are questions whose expected passage is ranked outside the top four, not refusals. Out-of-scope questions that slip past the threshold still reach the model, which is told to answer `NOT_FOUND`. These numbers come from the keyword path only; embedding retrieval (local and Render) is measured separately above.
+
 ## Run and configure it
 ```bash
 npm run rag:build                      # rebuild the index after editing /knowledge or src/content.js

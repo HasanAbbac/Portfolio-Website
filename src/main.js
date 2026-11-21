@@ -46,10 +46,36 @@ window.addEventListener('resize', () => stage && stage.resize());
 
 // Click the avatar: it waves or changes pose. Ignore clicks that land on UI.
 const UI_SEL = 'a,button,input,textarea,select,label,dialog,.props,.node,.card,.export,.dope,.graph,.pipe,.top,.skills-head,.proj-head,.exp-head,.col,.queue,.pf';
+let dragged = false; // true while a drag on the avatar is happening, so letting go does not also count as a click
 window.addEventListener('click', (e) => {
+  if (dragged) { dragged = false; return; }
   if (!stage || e.target.closest(UI_SEL)) return;
   if (stage.pick(e.clientX, e.clientY)) stage.poke();
 });
+
+// Drag the avatar sideways to turn it around its vertical axis; it eases back to its default rotation when released.
+let orbiting = null; // pointer id of the active drag
+let dragStartX = 0;
+window.addEventListener('pointerdown', (e) => {
+  if (!stage || orbiting !== null || (e.pointerType === 'mouse' && e.button !== 0) || e.target.closest(UI_SEL)) return;
+  if (stage.orbitStart(e.clientX, e.clientY)) { orbiting = e.pointerId; dragStartX = e.clientX; dragged = false; }
+});
+window.addEventListener('pointermove', (e) => {
+  if (orbiting !== e.pointerId) return;
+  if (!dragged && Math.abs(e.clientX - dragStartX) > 4) { dragged = true; document.documentElement.classList.add('avatar-drag'); }
+  if (dragged) stage.orbitMove(e.clientX);
+});
+const endOrbit = (e) => {
+  if (orbiting !== e.pointerId) return;
+  orbiting = null;
+  document.documentElement.classList.remove('avatar-drag');
+  if (stage) stage.orbitEnd();
+  if (e.type === 'pointercancel') dragged = false;
+  else setTimeout(() => { dragged = false; }, 0); // the click event fires right after pointerup: skip it, then reset
+};
+window.addEventListener('pointerup', endOrbit);
+window.addEventListener('pointercancel', endOrbit);
+window.addEventListener('blur', () => { if (orbiting !== null) endOrbit({ pointerId: orbiting, type: 'pointercancel' }); });
 let hoverT = 0;
 window.addEventListener('pointermove', (e) => {
   const n = performance.now();

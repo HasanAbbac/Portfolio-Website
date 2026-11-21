@@ -89,7 +89,13 @@ function startFake() {
       const reply = (status, body) => { res.writeHead(status, { 'content-type': 'application/json' }); res.end(JSON.stringify(body)); };
       if (req.url === '/brevo') { received.brevo.push({ headers: req.headers, body: JSON.parse(raw) }); return reply(201, { messageId: '<fake-id@brevo>' }); }
       if (req.url === '/brevo-bad') return reply(401, { code: 'unauthorized', message: 'Key not found' });
-      if (req.url.startsWith('/gemini/models/')) { received.gemini.push({ url: req.url, headers: req.headers, body: JSON.parse(raw) }); return reply(200, { candidates: [{ finishReason: 'STOP', content: { parts: [{ text: 'Neon Collector is a browser game Hasan built with Three.js.' }] } }] }); }
+      if (req.url.startsWith('/gemini/models/')) {
+        const body = JSON.parse(raw);
+        const isRewrite = /search queries/.test(body.systemInstruction.parts[0].text);
+        received.gemini.push({ url: req.url, headers: req.headers, body, kind: isRewrite ? 'rewrite' : 'answer' });
+        // the query rewriter just echoes the question (real Gemini turns it into an English search query)
+        if (isRewrite) return reply(200, { candidates: [{ finishReason: 'STOP', content: { parts: [{ text: body.contents[0].parts[0].text.replace(/<\/?question>/g, '').trim() }] } }] });
+        return reply(200, { candidates: [{ finishReason: 'STOP', content: { parts: [{ text: 'Neon Collector is a browser game Hasan built with Three.js.' }] } }] }); }
       reply(404, {});
     });
   });
@@ -134,16 +140,16 @@ test('server: the chat answer is written by Gemini from the retrieved passages',
   const r = await post(39202, '/api/chat', { message: 'Tell me about the Neon Collector game' });
   assert.equal(r.status, 200);
   assert.match(r.json.answer, /Neon Collector is a browser game/);
-  const got = received.gemini.at(-1);
+  const got = received.gemini.filter((g) => g.kind === 'answer').at(-1);
   assert.equal(got.headers['x-goog-api-key'], 'test-gemini-key');
   assert.ok(got.url.includes('/models/test-model:generateContent'));
   assert.ok(got.body.contents.at(-1).parts[0].text.includes('Neon Collector')); // the retrieved passage was sent as context
 });
 test('server: an out-of-scope question never reaches Gemini', async () => {
-  const before = received.gemini.length;
+  const before = received.gemini.filter((g) => g.kind === 'answer').length;
   const r = await post(39202, '/api/chat', { message: 'How do I bake chocolate cake with butter' });
   assert.equal(r.json.mode, 'refusal');
-  assert.equal(received.gemini.length, before);
+  assert.equal(received.gemini.filter((g) => g.kind === 'answer').length, before); // only the cheap query rewrite may have been called
 });
 
 test('gemini: one temporary 403 (new key still starting up) is retried once, then succeeds', async () => {

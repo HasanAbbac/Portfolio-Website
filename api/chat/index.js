@@ -1,5 +1,5 @@
 import { loadIndex } from '../../server/rag/store.js';
-import { createLlm } from '../../server/rag/llm.js';
+import { createLlm, createClaudeRewriter } from '../../server/rag/llm.js';
 import { pickAnswerer } from '../../server/rag/gemini.js';
 import { answerQuestion } from '../../server/rag/answer.js';
 import { clean } from '../../server/mail.js';
@@ -8,7 +8,9 @@ import { allow, clientIp, num, body } from '../../server/vercel-helpers.js';
 // Retrieval is keyword-based here (embedFn: null): the local embedding model cannot run in a serverless function.
 // The language model (Gemini, else Claude) still writes the answer from the retrieved passages.
 let answerer;
-const getLlm = () => { if (answerer === undefined) answerer = pickAnswerer(createLlm); return answerer ? answerer.fn : null; };
+const pick = () => { if (answerer === undefined) answerer = pickAnswerer(createLlm, createClaudeRewriter); return answerer; };
+const getLlm = () => (pick() ? pick().fn : null);
+const getRewrite = () => (pick() ? pick().rewrite : null);
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') { res.setHeader('Allow', 'POST'); return res.status(405).json({ error: 'Method not allowed' }); }
@@ -27,7 +29,7 @@ export default async function handler(req, res) {
   const index = loadIndex();
   if (!index) return res.status(503).json({ error: 'The assistant is not set up yet. Please use the contact form instead.' });
   const llmOk = allow('chat-llm', num('CHAT_LLM_PER_HOUR', 300), 3600000);
-  const deps = { index, embedFn: null, llm: llmOk ? getLlm() : null };
+  const deps = { index, embedFn: null, llm: llmOk ? getLlm() : null, rewrite: llmOk ? getRewrite() : null };
   try {
     let r;
     try {

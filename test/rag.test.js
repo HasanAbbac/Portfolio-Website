@@ -210,3 +210,90 @@ test('the experience question gets an honest answer from the documents', async (
   assert.equal(r.status, 200);
   assert.match(r.json.answer, /does not list any paid jobs|practical experience|closest information/i);
 });
+
+/* ---------- every site language ---------- */
+import { lexicalSearch, stem } from '../server/rag/lexical.js';
+import { needsRewrite } from '../server/rag/answer.js';
+import { langName } from '../server/rag/llm.js';
+
+test('private topics are recognised in all seven site languages', () => {
+  for (const q of ['What is his phone number?', '¿Cuál es su teléfono?', 'Quel est son salaire ?', 'Evli mi?', 'ان کی تنخواہ کتنی ہے؟', 'ما هو رقم هاتفه؟', '他的工资是多少？']) assert.ok(isPrivateQuestion(q), q);
+  for (const q of ['Which tools does he use?', '¿Qué herramientas usa?', 'Quels projets a-t-il réalisés ?', '他做过哪些项目？']) assert.ok(!isPrivateQuestion(q), q);
+});
+
+test('greetings and thanks in every site language get the fixed reply in that language', () => {
+  assert.match(smallTalkReply('Hola', 'es'), /Soy el asistente/);
+  assert.match(smallTalkReply('Bonjour', 'fr'), /assistant/);
+  assert.match(smallTalkReply('你好', 'zh'), /助手/);
+  assert.match(smallTalkReply('مرحبا', 'ar'), /مساعد/);
+  assert.match(smallTalkReply('Merhaba', 'tr'), /asistan/);
+  assert.match(smallTalkReply('سلام', 'ur'), /اسسٹنٹ/);
+  assert.match(smallTalkReply('gracias', 'es'), /De nada/);
+  assert.match(smallTalkReply('谢谢', 'zh'), /不客气/);
+});
+
+test('a question in another language is rewritten to English for retrieval and answered in that language', async () => {
+  const index = await makeIndex();
+  let rewriteSaw, llmSaw;
+  const rewrite = async ({ question }) => { rewriteSaw = question; return 'Rage Station Unity VR game project'; };
+  const llm = async (input) => { llmSaw = input; return 'Rage Station es un juego de realidad virtual hecho en Unity.'; };
+  const r = await answerQuestion({ question: '¿Qué es Rage Station?', lang: 'es' }, { index, embedFn: fakeEmbed, llm, rewrite });
+  assert.equal(rewriteSaw, '¿Qué es Rage Station?');
+  assert.equal(r.mode, 'llm');
+  assert.equal(llmSaw.lang, 'es');
+  assert.ok(llmSaw.passages.some((p) => /Rage Station/.test(p.text)));
+  assert.equal(langName('es'), 'Spanish');
+});
+
+test('English questions are not rewritten, and a failing rewriter falls back to the original question', async () => {
+  const index = await makeIndex();
+  let called = 0;
+  const rewrite = async () => { called++; throw Object.assign(new Error('x'), { code: 'boom' }); };
+  const llm = async () => 'Neon Collector is a browser game.';
+  assert.equal(needsRewrite('What is Neon Collector?', 'en'), false);
+  await answerQuestion({ question: 'What is Neon Collector?', lang: 'en' }, { index, embedFn: fakeEmbed, llm, rewrite });
+  assert.equal(called, 0);
+  const r = await answerQuestion({ question: 'What is Neon Collector?', lang: 'fr' }, { index, embedFn: fakeEmbed, llm, rewrite }); // French page: the rewrite is tried, fails, the original question is searched
+  assert.equal(called, 1);
+  assert.equal(r.mode, 'llm');
+});
+
+test('if the translation step fails, a question that keyword search cannot read is refused in the visitor language, not guessed', async () => {
+  const index = await makeIndex();
+  let asked = 0;
+  const llm = async () => { asked++; return 'should not be called'; };
+  const r = await answerQuestion({ question: 'Hasan 会使用哪些软件？', lang: 'zh' }, { index, embedFn: null, llm, rewrite: async () => '' });
+  assert.equal(r.mode, 'refusal');
+  assert.match(r.answer, /联系表单/);
+  assert.equal(asked, 0);
+});
+
+test('the no-model fallback explains itself in the visitor\'s language', async () => {
+  const index = await makeIndex();
+  const r = await answerQuestion({ question: 'Rage Station Unity', lang: 'fr' }, { index, embedFn: null, llm: null });
+  assert.equal(r.mode, 'extractive');
+});
+
+test('keyword search matches plurals, -ing forms and synonyms, so natural questions are not refused', async () => {
+  const index = await makeIndex();
+  assert.equal(stem('certifications'), 'certification');
+  assert.equal(stem('studies'), 'study');
+  for (const [q, id] of [['What certifications does he have?', 'cv-certificates'], ["What is Hasan's full name and where does he study?", 'cv-education'], ['Does he have any qualifications?', 'cv-certificates']]) {
+    const top = lexicalSearch(index, q, 4);
+    assert.ok(top[0].score >= 0.2, `${q} should not fall below the refusal threshold`);
+    assert.ok(top.some((h) => h.chunk.docId === id || h.chunk.id.startsWith(id)), `${q} should retrieve ${id}`);
+  }
+  assert.ok(lexicalSearch(index, 'bake a chocolate cake with butter', 1)[0].score < 0.2);
+});
+
+test('without the embedding model, a translated question is searched by keywords and the model sees the English question', async () => {
+  const index = await makeIndex();
+  let seen;
+  const llm = async (input) => { seen = input; return 'يحمل حسن شهادة جوجل.'; };
+  const r = await answerQuestion({ question: 'ما هي الشهادات التي يحملها حسن؟', lang: 'ar' }, { index, embedFn: null, llm, rewrite: async () => 'What certificates does Hassan hold?' });
+  assert.equal(r.mode, 'llm');
+  assert.equal(r.method, 'keywords');
+  assert.equal(seen.question, 'What certificates does Hassan hold?');
+  assert.equal(seen.lang, 'ar');
+  assert.ok(seen.passages.some((p) => /CEGA|Google AI/.test(p.text)));
+});
