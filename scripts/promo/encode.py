@@ -26,7 +26,7 @@ strips = seq.strips if hasattr(seq, 'strips') else seq.sequences
 pos = 1; vstrips = []
 for i, (a, b) in enumerate(segs):
     ch = 1 + (i % 2)                              # alternate channels so neighbouring strips can overlap for a cross-fade
-    st = strips.new_image(f'seg{i}', files[a], ch, pos)
+    st = strips.new_image(f'seg{i}', files[a], ch, pos, fit_method='FIT')   # FIT: the whole picture is scaled into the output size
     for f in files[a + 1:b + 1]:
         st.elements.append(os.path.basename(f))
     vstrips.append(st)
@@ -54,6 +54,12 @@ scene.frame_start = 1; scene.frame_end = int(total) - 1
 print('frames:', len(files), 'segments:', segs, 'output frames:', scene.frame_end)
 
 r = scene.render
+if 'still' in opt:   # write one frame as a PNG (for checking the framing) instead of the video
+    if hasattr(r.image_settings, 'media_type'): r.image_settings.media_type = 'IMAGE'
+    r.image_settings.file_format = 'PNG'; r.filepath = opt['still']
+    scene.frame_set(int(opt.get('at', 1)))
+    bpy.ops.render.render(write_still=True)
+    print('still', opt['still']); sys.exit(0)
 if hasattr(r.image_settings, 'media_type'): r.image_settings.media_type = 'VIDEO'
 r.image_settings.file_format = 'FFMPEG'
 r.ffmpeg.format = 'MPEG4'; r.ffmpeg.codec = 'H264'

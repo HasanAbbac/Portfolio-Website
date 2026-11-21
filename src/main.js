@@ -93,7 +93,8 @@ function frame(now) {
   last = now;
   const idx = ui.getIdx();
   ui.tick(dt, idx);
-  if (stage) {
+  // the 3D scene sleeps while the promo video plays, so the video gets the whole GPU
+  if (stage && !document.documentElement.classList.contains('promo-open')) {
     stage.update(dt, now / 1000, idx, mouse, ui.timelinePose());
     stage.drawGizmo(gizmo);
   }

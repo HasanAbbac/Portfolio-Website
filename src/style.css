@@ -725,6 +725,9 @@ html.chat-open .gizmo { opacity: 0; }
 
 /* promo video popup (opened from the hero button and the quick menu) */
 .promo { width: min(1120px, 94vw); }
+/* no blur behind the player: blurring the animated page behind a playing video makes it stutter */
+.promo::backdrop { backdrop-filter: none; background: rgba(5, 12, 18, 0.94); }
+.promo[open] { animation: none; }
 .promo .pm-card { height: auto; }
 .promo-body { background: #000; aspect-ratio: 16 / 9; width: 100%; }
 .promo-body video { display: block; width: 100%; height: 100%; background: #000; }

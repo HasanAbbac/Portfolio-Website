@@ -11,7 +11,7 @@ export function initPromo() {
   function open(from) {
     opener = from || document.activeElement;
     if (!video.getAttribute('src')) video.src = SRC;
-    document.documentElement.classList.add('modal-open');
+    document.documentElement.classList.add('modal-open', 'promo-open');
     if (!dlg.open) dlg.showModal();
     const p = video.play(); if (p && p.catch) p.catch(() => { /* the visitor can press play */ });
   }
@@ -21,7 +21,7 @@ export function initPromo() {
   dlg.addEventListener('click', (e) => { if (e.target === dlg) close(); });
   dlg.addEventListener('close', () => {
     video.pause();
-    document.documentElement.classList.remove('modal-open');
+    document.documentElement.classList.remove('modal-open', 'promo-open');
     if (opener && opener.isConnected) opener.focus();
   });
   return { open };
