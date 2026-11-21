@@ -5,16 +5,20 @@ export function initPromo() {
   const video = document.getElementById('promoVideo');
   const btn = document.getElementById('promoBtn');
   if (!dlg || !video) return { open() {} };
+  const err = document.getElementById('promoErr');
   let opener = null;
   const SRC = '/promo/Hasan_Abbasi_Promo.mp4';
 
   function open(from) {
     opener = from || document.activeElement;
-    if (!video.getAttribute('src')) video.src = SRC;
+    if (err) err.hidden = true;
+    if (!video.getAttribute('src')) { video.poster = '/promo/poster.webp'; video.src = SRC; } // poster and video are only requested on the first open
     document.documentElement.classList.add('modal-open', 'promo-open');
     if (!dlg.open) dlg.showModal();
     const p = video.play(); if (p && p.catch) p.catch(() => { /* the visitor can press play */ });
   }
+  // a failed download is said out loud and the next open tries again from scratch
+  video.addEventListener('error', () => { if (err) err.hidden = false; video.removeAttribute('src'); video.load(); });
   const close = () => dlg.close();
   if (btn) btn.addEventListener('click', () => open(btn));
   document.getElementById('promoClose').addEventListener('click', close);

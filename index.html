@@ -8,7 +8,9 @@
 <meta name="theme-color" content="#0f1d26">
 <meta property="og:title" content="Hasan Abbasi | 3D Artist">
 <meta property="og:description" content="Modelling, animation and game development. Watch the portfolio render itself as you scroll.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f1d26'/%3E%3Cpath d='M16 5l9 5.2v10.6L16 26l-9-5.2V10.2z' fill='none' stroke='%23ff9f7e' stroke-width='2.2'/%3E%3Cpath d='M16 5v10.5m0 0l9 5.3m-9-5.3l-9 5.3' stroke='%23ff9f7e' stroke-width='1.6' fill='none'/%3E%3C/svg%3E">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/fonts/manrope-400-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/unbounded-500-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/fonts/fonts.css">
@@ -193,7 +195,8 @@
 <dialog class="modal promo" id="promo" aria-labelledby="promoTitle">
   <div class="pm-card">
     <header class="pm-top"><i></i><span class="mono" id="promoTitle" data-i18n="promo.title">Portfolio promo</span><button class="pm-x" type="button" id="promoClose" aria-label="Close" data-i18n-attr="aria-label:pm.close">&times;</button></header>
-    <div class="promo-body"><video id="promoVideo" controls playsinline preload="none" poster="/promo/poster.webp" aria-describedby="promoDesc"></video></div>
+    <div class="promo-body"><video id="promoVideo" controls playsinline preload="none" aria-describedby="promoDesc"></video></div>
+    <p class="promo-err" id="promoErr" role="alert" hidden data-i18n="promo.err">The video could not be loaded. Check your connection and try again.</p>
     <p class="promo-desc" id="promoDesc" data-i18n="promo.desc">A 55-second promo: Blender renders, game footage, skills and certificates, with an original soundtrack.</p>
   </div>
 </dialog>

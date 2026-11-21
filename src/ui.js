@@ -348,7 +348,7 @@ export function initUI(content, _stats) {
       const res = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
       let body = {};
       try { body = await res.json(); } catch { /* not json */ }
-      if (res.ok) {
+      if (res.ok && body.ok === true) { // only a real {ok:true} from the server counts as sent, never an empty or odd 200
         bar.style.transition = 'width .35s ease';
         bar.style.width = '100%';
         setStatus(t('form.ok'), 'ok');
@@ -359,7 +359,8 @@ export function initUI(content, _stats) {
         bar.style.width = '0';
         if (body.errors) Object.entries(body.errors).forEach(([k, v]) => form.elements[k] && showErr(k, v));
         if (body.code === 'too_fast') { setStatus(t('form.wait'), 'error'); return; }
-        if (res.status === 503 || res.status === 502) { mailtoFallback(data); return; }
+        if (res.status === 503) { mailtoFallback(data); return; } // mail is not set up on the server: hand the message to the visitor's own email app
+        // a 502 means the mail provider failed this time: say so honestly and keep what was typed so they can try again
         setStatus(res.status === 429 ? t('form.rate') : t('form.fail'), 'error');
       }
     } catch {
