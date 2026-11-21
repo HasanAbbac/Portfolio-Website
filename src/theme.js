@@ -1,6 +1,6 @@
 import { t } from './i18n.js';
 
-const META = { dark: '#0f1d26', light: '#f3efe6' };
+const META = { dark: '#0f1d26', light: '#fbfaf6' };
 
 export function getTheme() {
   return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';

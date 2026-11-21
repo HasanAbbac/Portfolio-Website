@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Light theme workshop</title>
+<!-- Throw-away comparison page for choosing the light theme. Open it in a browser. Not part of the site build. -->
+<style>
+@font-face { font-family: 'Unbounded'; font-weight: 500; src: url(../public/fonts/unbounded-500-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Manrope'; font-weight: 200 800; src: url(../public/fonts/manrope-400-latin.woff2) format('woff2'); }
+@font-face { font-family: 'DM Mono'; font-weight: 400; src: url(../public/fonts/dm-mono-400-latin.woff2) format('woff2'); }
+* { box-sizing: border-box; margin: 0; }
+body { font: 15px/1.5 'Manrope', system-ui, sans-serif; background: #1b2329; color: #e9eef0; padding: 28px 22px 60px; }
+h1 { font: 500 22px 'Unbounded', sans-serif; margin-bottom: 6px; }
+.lead { color: #aebcc2; max-width: 74ch; margin-bottom: 22px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(430px, 1fr)); gap: 22px; max-width: 1500px; }
+.opt { border-radius: 14px; overflow: hidden; background: #0f161b; border: 1px solid #2a363d; }
+.opt > header { display: flex; justify-content: space-between; align-items: baseline; padding: 12px 16px; font: 500 12px 'DM Mono', monospace; letter-spacing: .08em; text-transform: uppercase; color: #cfdadd; }
+.opt > header b { font: 500 15px 'Unbounded', sans-serif; letter-spacing: 0; text-transform: none; color: #fff; }
+.opt > header span.tag { color: #ffb08a; }
+.swatches { display: flex; gap: 0; height: 22px; }
+.swatches i { flex: 1; }
+
+/* ---- the mini site: every colour comes from the option's variables ---- */
+.site { background: var(--bg); color: var(--ink); padding: 14px 16px 18px; font-size: 13px; }
+.bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.bar .brand { font: 500 13px 'Unbounded', sans-serif; }
+.tools { display: flex; gap: 6px; }
+.tool { height: 26px; min-width: 26px; padding: 0 9px; border-radius: 999px; background: var(--raised); color: var(--ink); display: grid; place-items: center; font: 500 11px 'DM Mono', monospace; box-shadow: 0 2px 0 var(--edge); }
+.tool.k { color: var(--accent-text); }
+.row { display: grid; grid-template-columns: 96px 1fr; gap: 14px; }
+.nav { background: var(--navbg); border-radius: 18px; padding: 8px 6px; display: grid; gap: 2px; align-content: start; height: max-content; }
+.nav span { color: var(--navtext); font-size: 11px; font-weight: 600; padding: 5px 9px; border-radius: 999px; }
+.nav span.on { background: var(--orange); color: var(--orange-ink); }
+.tagline { font: 400 10px 'DM Mono', monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); }
+h2 { font: 500 30px/1.05 'Unbounded', sans-serif; margin: 6px 0 8px; }
+h2 em { font-style: normal; color: var(--accent-text); }
+.mut { color: var(--mut); }
+.faint { color: var(--faint); font-size: 12px; }
+.btns { display: flex; gap: 8px; margin: 10px 0 12px; }
+.btn { border-radius: 999px; padding: 7px 14px; font-weight: 700; font-size: 12px; box-shadow: 0 3px 0 var(--edge); }
+.btn.p { background: var(--orange); color: var(--orange-ink); }
+.btn.s { background: var(--btn2); color: var(--btn2text); }
+.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.card { background: var(--panel); border-radius: 14px; overflow: hidden; box-shadow: 0 1px 0 var(--line2), 0 6px 14px rgba(0,0,0,.06); border: 1px solid var(--line); }
+.card .img { height: 54px; background: linear-gradient(135deg, var(--deep), var(--deep2)); position: relative; }
+.card .img u { position: absolute; left: 8px; top: 8px; text-decoration: none; background: var(--raised); color: var(--accent-text); font: 400 9px 'DM Mono', monospace; padding: 2px 7px; border-radius: 999px; letter-spacing: .08em; }
+.card .t { padding: 8px 10px 10px; }
+.card b { display: block; font: 500 12px 'Unbounded', sans-serif; margin-bottom: 3px; }
+.chips { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+.chips i { font: 400 9.5px 'DM Mono', monospace; font-style: normal; background: var(--raised); color: var(--ink); padding: 2px 8px; border-radius: 999px; }
+.pf { display: flex; gap: 6px; margin: 12px 0 0; flex-wrap: wrap; }
+.pf span { padding: 4px 11px; border-radius: 999px; font: 400 10.5px 'DM Mono', monospace; background: var(--btn2); color: var(--btn2text); }
+.pf span.on { background: var(--orange); color: var(--orange-ink); }
+.form { margin-top: 12px; background: var(--panel); border-radius: 14px; border: 1px solid var(--line); overflow: hidden; }
+.form header { background: var(--navbg); color: var(--navtext); font: 400 10px 'DM Mono', monospace; letter-spacing: .12em; text-transform: uppercase; padding: 6px 10px; }
+.form div { padding: 8px 10px 10px; display: grid; gap: 6px; }
+.form label { font-size: 10px; color: var(--mut); }
+.form input { height: 24px; border-radius: 6px; border: 1px solid var(--field-line); background: var(--field); }
+.links { margin-top: 10px; font-size: 12px; }
+.links a { color: var(--blue-text); text-decoration: underline; margin-right: 12px; }
+.links b { color: var(--teal-text); }
+
+/* ---- contrast table ---- */
+table { width: 100%; border-collapse: collapse; font: 400 11.5px 'DM Mono', monospace; }
+td, th { padding: 5px 14px; text-align: left; border-top: 1px solid #1f2b32; color: #cfdadd; }
+th { color: #8da0a8; font-weight: 400; }
+td:last-child { text-align: right; }
+.ok { color: #7be0b0; } .lg { color: #ffd36b; } .bad { color: #ff8a80; }
+.score { padding: 10px 16px 14px; color: #aebcc2; font-size: 12.5px; border-top: 1px solid #1f2b32; }
+.score b { color: #fff; }
+
+/* ---- the options ---- */
+.o1 { --bg:#f3efe6; --panel:#fffdf8; --raised:#e6dfcf; --field:#ece7da; --ink:#13303a; --mut:#3f545c; --faint:#4f636b; --line:rgba(19,48,58,.14); --line2:rgba(19,48,58,.28); --orange:#e0603a; --orange-ink:#2a1608; --accent-text:#b4461f; --blue-text:#26569d; --teal-text:#126455; --navbg:#12303b; --navtext:#bcd3d6; --btn2:#12303b; --btn2text:#f3efe6; --edge:#c1bbae; --deep:#e6dfcf; --deep2:#d4cdbe; --field-line:#cfc9ba; }
+.o2 { --bg:#fbfaf6; --panel:#ffffff; --raised:#ebe6da; --field:#f3f0e8; --ink:#0c2430; --mut:#33505b; --faint:#46606a; --line:rgba(12,36,48,.16); --line2:rgba(12,36,48,.32); --orange:#f06a3f; --orange-ink:#220f04; --accent-text:#a93a14; --blue-text:#1b4fa8; --teal-text:#0d5f52; --navbg:#0c2430; --navtext:#cfe2e6; --btn2:#0c2430; --btn2text:#ffffff; --edge:#d3cdbf; --deep:#dfe9ec; --deep2:#c9d8dd; --field-line:#cfcabc; }
+.o3 { --bg:#eaf1f4; --panel:#ffffff; --raised:#dbe6eb; --field:#e5eef2; --ink:#0a2230; --mut:#304f5d; --faint:#42606d; --line:rgba(10,34,48,.16); --line2:rgba(10,34,48,.32); --orange:#f2693d; --orange-ink:#1f0c03; --accent-text:#a8380f; --blue-text:#1a4ea6; --teal-text:#0b5e55; --navbg:#0f2c3b; --navtext:#c6dde4; --btn2:#0f2c3b; --btn2text:#ffffff; --edge:#b9cbd3; --deep:#cfe0e7; --deep2:#b6ccd6; --field-line:#bfd0d8; }
+.o4 { --bg:#f7f0e2; --panel:#fffaf0; --raised:#ecdfc6; --field:#f0e6d1; --ink:#14232b; --mut:#3b4a4f; --faint:#4d5b5f; --line:rgba(20,35,43,.18); --line2:rgba(20,35,43,.34); --orange:#e8582b; --orange-ink:#240e04; --accent-text:#a23212; --blue-text:#1f4f9c; --teal-text:#0f5c4d; --navbg:#1a2c34; --navtext:#d8e0e0; --btn2:#1a2c34; --btn2text:#fff6e6; --edge:#d3c5a6; --deep:#ecdfc6; --deep2:#d9c9a8; --field-line:#d8c9a8; }
+.o5 { --bg:#edf4ef; --panel:#fcfffd; --raised:#dce9e1; --field:#e6f0ea; --ink:#0d2a2c; --mut:#2f5052; --faint:#42605f; --line:rgba(13,42,44,.16); --line2:rgba(13,42,44,.32); --orange:#f0683c; --orange-ink:#200d04; --accent-text:#a63a12; --blue-text:#1d519f; --teal-text:#0a6254; --navbg:#0f3033; --navtext:#cfe4e0; --btn2:#0f3033; --btn2text:#ffffff; --edge:#bdd0c5; --deep:#d3e5da; --deep2:#bcd3c5; --field-line:#c3d6cb; }
+</style>
+</head>
+<body>
+<h1>Light theme workshop</h1>
+<p class="lead">Option 1 is the light theme as it is now. Options 2 to 5 are alternatives with stronger text contrast, a crisper paper colour and the same coral and teal brand accents as the dark theme. Every number is measured from the real colours (WCAG contrast: 4.5 or more passes for normal text). Tell me which one to build on, or what to change.</p>
+<div class="grid" id="grid"></div>
+
+<template id="tpl">
+  <article class="opt">
+    <header><b class="name"></b><span class="tag"></span></header>
+    <div class="swatches"></div>
+    <div class="site">
+      <div class="bar"><span class="brand">&#x2B21; Hasan Abbasi</span><div class="tools"><span class="tool">&#9633;</span><span class="tool k">K</span><span class="tool">&#9788;</span><span class="tool">English</span></div></div>
+      <div class="row">
+        <div class="nav"><span class="on">Home</span><span>About</span><span>Skills</span><span>Projects</span><span>Contact</span></div>
+        <div>
+          <div class="tagline">3D artist &middot; animator &middot; game developer</div>
+          <h2>Hasan <em>Abbasi</em></h2>
+          <p class="mut">I model and animate 3D characters and worlds, then build them into games in Unity and Unreal Engine.</p>
+          <div class="btns"><span class="btn p">Watch it render</span><span class="btn s">Say hello</span></div>
+          <p class="faint">BS Computer Science &middot; Gaming and Animation &middot; NED University</p>
+        </div>
+      </div>
+      <div class="pf"><span class="on">All 12</span><span>3D Models 8</span><span>Web Games 2</span><span>Unity Games 1</span></div>
+      <div class="cards">
+        <div class="card"><div class="img"><u>3D MODEL</u></div><div class="t"><b>Chess Set</b><span class="mut">Board and pieces built with geometry nodes.</span><div class="chips"><i>Blender</i><i>Cycles</i></div></div></div>
+        <div class="card"><div class="img"><u>WEB GAME</u></div><div class="t"><b>Neon Collector</b><span class="mut">Arcade game: collect coins, dodge drones.</span><div class="chips"><i>Three.js</i><i>Game</i></div></div></div>
+      </div>
+      <div class="form"><header>Export message .msg</header><div><label>Name</label><input aria-hidden="true"><label>Email</label><input aria-hidden="true"></div></div>
+      <p class="links"><a>GitHub</a><a>LinkedIn</a><b>Open to work</b></p>
+    </div>
+    <table class="ct"></table>
+    <div class="score"></div>
+  </article>
+</template>
+
+<script>
+const OPTIONS = [
+  { cls: 'o1', name: '1  Clay Cream (current)', tag: 'today' },
+  { cls: 'o2', name: '2  Paper White', tag: 'highest contrast, clean' },
+  { cls: 'o3', name: '3  Sky Mist', tag: 'cool, matches dark theme' },
+  { cls: 'o4', name: '4  Sand and Ink', tag: 'warm, bolder' },
+  { cls: 'o5', name: '5  Mint Studio', tag: 'fresh, teal-leaning' },
+];
+const lum = (hex) => { const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4))); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+const PAIRS = [
+  ['Body text on page', 'ink', 'bg'], ['Secondary text on page', 'mut', 'bg'], ['Small grey text on page', 'faint', 'bg'],
+  ['Secondary text on cards', 'mut', 'panel'], ['Coral headline on page', 'accent-text', 'bg'], ['Coral text on cards', 'accent-text', 'panel'],
+  ['Links on page', 'blue-text', 'bg'], ['Green text on page', 'teal-text', 'bg'], ['Coral button label', 'orange-ink', 'orange'],
+  ['Dark button label', 'btn2text', 'btn2'], ['Menu text on dark menu', 'navtext', 'navbg'], ['Page vs card edge (shape)', 'bg', 'panel'],
+];
+const grid = document.getElementById('grid');
+const tpl = document.getElementById('tpl');
+OPTIONS.forEach((o) => {
+  const node = tpl.content.cloneNode(true);
+  const art = node.querySelector('article');
+  art.classList.add(o.cls);
+  node.querySelector('.name').textContent = o.name;
+  node.querySelector('.tag').textContent = o.tag;
+  grid.appendChild(node);
+  const cs = getComputedStyle(art);
+  const v = (n) => cs.getPropertyValue('--' + n).trim();
+  const sw = art.querySelector('.swatches');
+  ['bg', 'panel', 'raised', 'ink', 'mut', 'orange', 'accent-text', 'blue-text', 'teal-text', 'navbg'].forEach((n) => { const i = document.createElement('i'); i.style.background = v(n); i.title = n + ' ' + v(n); sw.appendChild(i); });
+  let pass = 0, total = 0, min = 99;
+  const rows = PAIRS.map(([label, f, b]) => {
+    const r = ratio(v(f), v(b));
+    const shape = f === 'bg' && b === 'panel';
+    const cls = shape ? (r >= 1.05 ? 'ok' : 'lg') : r >= 4.5 ? 'ok' : r >= 3 ? 'lg' : 'bad';
+    if (!shape) { total++; if (r >= 4.5) pass++; min = Math.min(min, r); }
+    return `<tr><td>${label}</td><td>${v(f)} on ${v(b)}</td><td class="${cls}">${r.toFixed(2)}${shape ? '' : r >= 4.5 ? ' AA' : r >= 3 ? ' large only' : ' FAIL'}</td></tr>`;
+  });
+  art.querySelector('.ct').innerHTML = '<tr><th>Pair</th><th>Colours</th><th>Contrast</th></tr>' + rows.join('');
+  art.querySelector('.score').innerHTML = `<b>${pass} of ${total}</b> text pairs pass AA. Lowest text contrast: <b>${min.toFixed(2)}</b>.`;
+});
+</script>
+</body>
+</html>

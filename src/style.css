@@ -29,15 +29,16 @@
   color-scheme: dark;
 }
 [data-theme='light'] {
-  --bg: #f3efe6; --ink: #13303a; --mut: #3f545c; --faint: #4f636b;
-  --line: rgba(19, 48, 58, 0.14); --line2: rgba(19, 48, 58, 0.28);
-  --panel: #fffdf8; --panel-head: #e6dfcf; --field: #ece7da; --raised: #e6dfcf;
-  --orange: #e0603a; --orange-ink: #2a1608; --blue: #2f6bc4; --teal: #1a8f7a;
-  --clay-hi: inset 0 2px 0 rgba(255, 255, 255, 0.7), inset 0 -5px 0 rgba(19, 48, 58, 0.08);
-  --panel-rgb: 255, 253, 248; --bg-rgb: 243, 239, 230; --pipe-rgb: 251, 249, 243; --shade-rgb: 142, 153, 153; --vig-rgb: 243, 239, 230; --scrim-rgb: 19, 48, 58; --hl-rgb: 19, 48, 58;
-  --deep: #e6dfcf; --deep2: #ddd6c7; --deep3: #d4cdbe; --gridc: #d8d2c3; --hover: #f2eee4; --btn-edge: #c1bbae; --field-line: #cfc9ba; --wirec: #9ea7a6; --node-hover: #859193;
-  --accent-text: #b4461f; --teal-text: #126455; --blue-text: #26569d;
-  --stage-hemi: #faf9f5; --stage-ground: #d8d2c3; --stage-ped: #ddd6c7; --stage-ink: #4a5f66;
+  /* "Paper White": a crisp near-white page, deep teal ink, white cards, and the same coral and teal accents as the dark theme */
+  --bg: #fbfaf6; --ink: #0c2430; --mut: #33505b; --faint: #46606a;
+  --line: rgba(12, 36, 48, 0.16); --line2: rgba(12, 36, 48, 0.32);
+  --panel: #ffffff; --panel-head: #ebe6da; --field: #f3f0e8; --raised: #ebe6da;
+  --orange: #f06a3f; --orange-ink: #220f04; --blue: #1b4fa8; --teal: #1a8f7a;
+  --clay-hi: inset 0 2px 0 rgba(255, 255, 255, 0.8), inset 0 -5px 0 rgba(12, 36, 48, 0.07);
+  --panel-rgb: 255, 255, 255; --bg-rgb: 251, 250, 246; --pipe-rgb: 255, 255, 255; --shade-rgb: 142, 153, 153; --vig-rgb: 251, 250, 246; --scrim-rgb: 12, 36, 48; --hl-rgb: 12, 36, 48;
+  --deep: #dfe9ec; --deep2: #c9d8dd; --deep3: #b6c9cf; --gridc: #dde5e8; --hover: #f4f1ea; --btn-edge: #d3cdbf; --field-line: #cfcabc; --wirec: #9fb0b6; --node-hover: #7f949b;
+  --accent-text: #a93a14; --teal-text: #0d5f52; --blue-text: #1b4fa8;
+  --stage-hemi: #ffffff; --stage-ground: #cdd8dc; --stage-ped: #dfe9ec; --stage-ink: #46606a;
   color-scheme: light;
 }
 
@@ -618,20 +619,20 @@ html.rtl .lang-sel { text-align: start; }
 }
 
 /* ---------- light theme: "dark islands" (dark teal controls on the light page, like the dark theme's contrast) ---------- */
-[data-theme='light'] .nav, [data-theme='light'] .pipe { background: #12303b !important; border: 0 !important; }
-[data-theme='light'] .nav a { color: #bcd3d6 !important; }
+[data-theme='light'] .nav, [data-theme='light'] .pipe { background: #0c2430 !important; border: 0 !important; }
+[data-theme='light'] .nav a { color: #cfe2e6 !important; }
 [data-theme='light'] .nav a:hover { color: #ffffff !important; }
 [data-theme='light'] .nav a.on { color: #2a1608 !important; }
 [data-theme='light'] .pipe button { color: #a9c2c6 !important; }
 [data-theme='light'] .pipe button.on { color: #ffffff !important; }
-[data-theme='light'] .pipe button b { background: #25505f !important; color: #e7f2f3 !important; }
+[data-theme='light'] .pipe button b { background: #1c4252 !important; color: #e7f2f3 !important; }
 [data-theme='light'] .pipe button.on b { background: var(--orange) !important; color: #2a1608 !important; }
-[data-theme='light'] .pipe-rail { background: #2f5a69; }
-[data-theme='light'] .tool-btn, [data-theme='light'] .lang-sel { background: #e6dfcf !important; color: #13303a !important; }
-[data-theme='light'] .tool-btn:hover, [data-theme='light'] .lang-sel:hover { background: #f2eee4 !important; }
-[data-theme='light'] .btn:not(.btn-primary):not([aria-pressed='true']), [data-theme='light'] .pf button:not([aria-pressed='true']) { background: #12303b !important; color: #f3efe6 !important; }
+[data-theme='light'] .pipe-rail { background: #2c5568; }
+[data-theme='light'] .tool-btn, [data-theme='light'] .lang-sel { background: #ebe6da !important; color: #0c2430 !important; }
+[data-theme='light'] .tool-btn:hover, [data-theme='light'] .lang-sel:hover { background: #f4f1ea !important; }
+[data-theme='light'] .btn:not(.btn-primary):not([aria-pressed='true']), [data-theme='light'] .pf button:not([aria-pressed='true']) { background: #0c2430 !important; color: #ffffff !important; }
 [data-theme='light'] .pf button[aria-pressed='true'] { background: var(--orange) !important; color: #2a1608 !important; }
-[data-theme='light'] .props > header, [data-theme='light'] .export > header, [data-theme='light'] .dope > header { background: #12303b !important; color: #e7f2f3 !important; }
+[data-theme='light'] .props > header, [data-theme='light'] .export > header, [data-theme='light'] .dope > header { background: #0c2430 !important; color: #e7f2f3 !important; }
 /* text inside those dark headers must stay readable on the dark background */
 [data-theme='light'] .props > header *, [data-theme='light'] .export > header *, [data-theme='light'] .dope > header * { color: #cfe0e2; }
 [data-theme='light'] .dope > header output, [data-theme='light'] .props > header .accent, [data-theme='light'] .export > header .accent { color: #ffb08a; }
@@ -691,7 +692,7 @@ html.rtl .lang-sel { text-align: start; }
 .chat-form .btn { flex: none; height: 44px; padding: 0 20px; }
 .chat-note { margin: 0; padding: 0 16px 12px; color: var(--faint); font-size: 0.72rem; line-height: 1.45; }
 html.chat-open .gizmo { opacity: 0; }
-[data-theme='light'] .chat-h { background: #12303b !important; color: #e7f2f3; }
+[data-theme='light'] .chat-h { background: #0c2430 !important; color: #e7f2f3; }
 [data-theme='light'] .chat-h small { color: #a9c2c6; }
 [data-theme='light'] .chat-x { background: #25505f; color: #e7f2f3; }
 @media (prefers-reduced-motion: no-preference) { .chat:not([hidden]) { animation: chat-in 0.22s ease-out; } @keyframes chat-in { from { opacity: 0; transform: translateY(10px); } } }
