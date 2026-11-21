@@ -1,7 +1,7 @@
 import { t, LANG_MENU, setLang, getLang } from './i18n.js';
 
 // "Quick menu": press K (or Ctrl/Cmd+K) to jump to a section or project, run an action, or change language.
-export function initPalette({ content, ui, theme }) {
+export function initPalette({ content, ui, theme, promo }) {
   const dlg = document.getElementById('cmd');
   const input = document.getElementById('cmdQ');
   const list = document.getElementById('cmdList');
@@ -21,6 +21,7 @@ export function initPalette({ content, ui, theme }) {
     items = [];
     SECTIONS.forEach((k, i) => items.push({ g: 'cmd.sections', label: t('nav.' + k), hint: String(i + 1).padStart(2, '0'), run: () => ui.scrollToIdx(i) }));
     items.push(
+      ...(promo ? [{ g: 'cmd.actions', label: t('act.promo'), run: () => promo.open() }] : []),
       { g: 'cmd.actions', label: t('about.view'), run: () => cvLink(false) },
       { g: 'cmd.actions', label: t('about.download'), run: () => cvLink(true) },
       { g: 'cmd.actions', label: t('contact.wa'), run: () => ext(wa) },

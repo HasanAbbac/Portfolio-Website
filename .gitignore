@@ -3,3 +3,6 @@ dist
 .env
 *.log
 .model-cache
+
+# promo video build output (the finished MP4 is added to public/ only when approved)
+scripts/promo/out/

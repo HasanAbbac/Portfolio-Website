@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Hasan Abbasi, portfolio promo</title>
+<!-- A deterministic, frame-by-frame animation: window.renderFrame(n) draws frame n (30 fps, 1920x1080).
+     scripts/promo/render.mjs captures every frame with headless Chrome; scripts/promo/encode.py (Blender) joins them with the music. -->
+<style>
+@font-face { font-family: 'Unbounded'; font-weight: 500; src: url(/public/fonts/unbounded-500-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Manrope'; font-weight: 200 800; src: url(/public/fonts/manrope-400-latin.woff2) format('woff2'); }
+@font-face { font-family: 'DM Mono'; font-weight: 400; src: url(/public/fonts/dm-mono-400-latin.woff2) format('woff2'); }
+@font-face { font-family: 'DM Mono'; font-weight: 500; src: url(/public/fonts/dm-mono-500-latin.woff2) format('woff2'); }
+:root { --bg: #0f1d26; --ink: #fff4ea; --mut: #b9d4de; --faint: #8fb2bf; --panel: #183240; --raised: #21424f; --coral: #ff9f7e; --blue: #8ab8ff; --teal: #8fe8d0; --line: rgba(185, 212, 222, 0.22); }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); }
+#stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; color: var(--ink); font-family: 'Manrope', sans-serif;
+  background: radial-gradient(1200px 800px at 78% 40%, #1a3a4a 0%, #0f1d26 60%, #0a141b 100%); }
+#gl { position: absolute; inset: 0; width: 1920px; height: 1080px; }
+#ui { position: absolute; inset: 0; }
+.abs { position: absolute; }
+.sc { position: absolute; inset: 0; display: none; }
+.mono { font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.22em; }
+.disp { font-family: 'Unbounded', sans-serif; font-weight: 500; line-height: 1.02; }
+.coral { color: var(--coral); } .blue { color: var(--blue); } .teal { color: var(--teal); }
+.mask { overflow: hidden; display: block; padding-bottom: 0.12em; margin-bottom: -0.12em; }
+.mask > span { display: inline-block; will-change: transform; }
+.chip { display: inline-block; font: 500 22px 'DM Mono', monospace; padding: 8px 18px; border-radius: 999px; background: var(--raised); color: var(--ink); letter-spacing: 0.04em; box-shadow: inset 0 2px 0 rgba(255,255,255,.12), 0 4px 0 #07121a; }
+.chip.c { background: var(--coral); color: #2a1608; }
+.vig { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(4,10,14,.55) 100%); }
+.wipe { position: absolute; top: 0; bottom: 0; left: 0; width: 1920px; background: var(--coral); transform: translateX(-100%); }
+.wipe2 { background: #12303d; }
+
+/* top bar and pipeline */
+#hud-top { left: 90px; right: 90px; top: 48px; height: 44px; display: flex; justify-content: space-between; align-items: center; }
+#brand { display: flex; align-items: center; gap: 14px; font: 500 22px 'Unbounded', sans-serif; letter-spacing: .02em; }
+#clock { font-size: 20px; color: var(--faint); }
+#pipe { left: 90px; right: 90px; bottom: 46px; height: 64px; border-radius: 999px; background: rgba(12, 28, 38, .86); border: 1px solid var(--line); display: flex; align-items: center; padding: 0 26px; gap: 0; }
+#pipe .step { flex: 1; display: flex; align-items: center; gap: 12px; color: var(--faint); font: 500 18px 'DM Mono', monospace; letter-spacing: .2em; text-transform: uppercase; opacity: .75; transition: none; }
+#pipe .step b { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: #25505f; color: #e7f2f3; font-size: 16px; letter-spacing: 0; }
+#pipe .step.on { color: #fff; opacity: 1; }
+#pipe .step.on b { background: var(--coral); color: #2a1608; }
+#pipe .fill { position: absolute; left: 26px; bottom: 0; height: 3px; background: var(--coral); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="gl" width="1920" height="1080"></canvas>
+  <div id="ui"></div>
+  <div class="vig"></div>
+</div>
+
+<script type="importmap">{ "imports": { "three": "/node_modules/three/build/three.module.js", "three/addons/": "/node_modules/three/examples/jsm/" } }</script>
+<script type="module" src="./promo.js"></script>
+</body>
+</html>

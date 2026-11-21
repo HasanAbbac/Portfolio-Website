@@ -70,6 +70,7 @@
       <div class="cta">
         <a class="btn btn-primary" href="#about" data-i18n="hero.watch">Watch it render</a>
         <a class="btn" href="#contact" data-i18n="hero.hello">Say hello</a>
+        <button class="btn btn-play" type="button" id="promoBtn" aria-haspopup="dialog"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M7 4.5v15l12-7.5z"/></svg><span data-i18n="promo.open">Watch promo</span></button>
       </div>
       <p class="meta" data-i18n="hero.meta">BS Computer Science &middot; Gaming and Animation &middot; NED University</p>
       <p class="hero-hint mono" data-i18n="hero.hint">Tip: click the avatar, or press K for the quick menu</p>
@@ -186,6 +187,14 @@
         <p class="links" id="pmLinks"></p>
       </div>
     </div>
+  </div>
+</dialog>
+
+<dialog class="modal promo" id="promo" aria-labelledby="promoTitle">
+  <div class="pm-card">
+    <header class="pm-top"><i></i><span class="mono" id="promoTitle" data-i18n="promo.title">Portfolio promo</span><button class="pm-x" type="button" id="promoClose" aria-label="Close" data-i18n-attr="aria-label:pm.close">&times;</button></header>
+    <div class="promo-body"><video id="promoVideo" controls playsinline preload="none" poster="/promo/poster.webp" aria-describedby="promoDesc"></video></div>
+    <p class="promo-desc" id="promoDesc" data-i18n="promo.desc">A 55-second promo: Blender renders, game footage, skills and certificates, with an original soundtrack.</p>
   </div>
 </dialog>
 

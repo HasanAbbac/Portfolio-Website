@@ -5,6 +5,7 @@ import { setLang, initialLang, LANG_MENU } from './i18n.js';
 import { initTheme, getTheme } from './theme.js';
 import { initPalette } from './palette.js';
 import { initChat } from './chat.js';
+import { initPromo } from './promo.js';
 
 const canvas = document.getElementById('stage');
 const gizmo = document.getElementById('gizmo');
@@ -30,7 +31,8 @@ setLang(initialLang(), false);
 sel.value = document.documentElement.lang;
 const ui = initUI(CONTENT);
 const theme = initTheme(() => stage);
-initPalette({ content: CONTENT, ui, theme });
+const promo = initPromo();
+initPalette({ content: CONTENT, ui, theme, promo });
 initChat({ ui });
 sel.addEventListener('change', () => setLang(sel.value));
 window.addEventListener('langchange', (e) => { sel.value = e.detail; ui.measure(); });
