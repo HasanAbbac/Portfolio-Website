@@ -15,7 +15,7 @@ Two hosts are supported. **Vercel** (free) is what the live site uses; **Render*
 4. Check: open `/api/chat/status` (it should say `{"ready":true}`), `/sitemap.xml`, ask the assistant a question, send yourself a contact message.
 
 How the chatbot differs on Vercel: the 23 MB local embedding model cannot run in a serverless function, so retrieval uses keyword search (word stems and synonyms, see `server/rag/lexical.js`). A question in another language is first translated to English by Gemini, then searched, and the answer is written in the page language. That is two Gemini calls for a non-English question and one for an English question. The free Gemini tier allows about 15 calls per minute, which is plenty for a portfolio; if it is exceeded, English questions fall back to quoting your documents and non-English ones get a polite "I don't have that information".
-Rate limits (contact form, chat) are kept in memory per function instance, so they are looser than on Render. `npm install --omit=optional` (set in `vercel.json`) skips the embedding model package, which only the local and Render servers use.
+Rate limits (contact form, chat) are kept in memory per function instance, so they are looser than on Render.
 After changing `knowledge/*.md` or `src/content.js`, run `npm run rag:build` on your computer and commit the updated `server/rag/index.json`.
 
 ---
