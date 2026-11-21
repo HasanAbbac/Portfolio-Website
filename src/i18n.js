@@ -118,6 +118,7 @@ const ROWS = [
   ['pm.fail', 'Could not load the model file.', 'ماڈل فائل لوڈ نہیں ہو سکی۔', 'No se pudo cargar el archivo del modelo.', 'Impossible de charger le fichier du modèle.', '无法加载模型文件。', 'تعذّر تحميل ملف النموذج.', 'Model dosyası yüklenemedi.'],
   ['pm.nowebgl', 'This browser could not start the 3D viewer.', 'یہ براؤزر تھری ڈی ویور شروع نہیں کر سکا۔', 'Este navegador no pudo iniciar el visor 3D.', "Ce navigateur n'a pas pu démarrer la visionneuse 3D.", '此浏览器无法启动 3D 查看器。', 'تعذّر على هذا المتصفح تشغيل عارض ثلاثي الأبعاد.', 'Bu tarayıcı 3D görüntüleyiciyi başlatamadı.'],
   ['pm.hint', 'Drag to rotate · scroll to zoom', 'گھمانے کے لیے ڈریگ کریں · زوم کے لیے اسکرول کریں', 'Arrastra para girar · desplaza para acercar', 'Faites glisser pour tourner · défilez pour zoomer', '拖动旋转 · 滚轮缩放', 'اسحب للتدوير · مرّر للتكبير', 'Döndürmek için sürükle · yakınlaştırmak için kaydır'],
+  ['pm.anim', 'Animation', 'اینیمیشن', 'Animación', 'Animation', '动画', 'الحركة', 'Animasyon'],
   ['pm.stage', 'Render stage', 'رینڈر مرحلہ', 'Fase de render', 'Étape de rendu', '渲染阶段', 'مرحلة الريندر', 'Render aşaması'],
   ['pm.play', 'Play {title}', '{title} کھیلیں', 'Jugar a {title}', 'Jouer à {title}', '试玩 {title}', 'العب {title}', '{title} oyna'],
   ['pm.full', 'Open full screen', 'فل اسکرین میں کھولیں', 'Abrir en pantalla completa', 'Ouvrir en plein écran', '全屏打开', 'افتح بملء الشاشة', 'Tam ekranda aç'],

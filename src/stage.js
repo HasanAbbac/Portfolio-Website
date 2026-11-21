@@ -26,6 +26,8 @@ function layoutAt(table, idx) {
   return { x: lerp(table.x[i], table.x[i + 1], t) * flip, y: lerp(table.y[i], table.y[i + 1], t), s: lerp(table.s[i], table.s[i + 1], t) };
 }
 
+const AVATAR_URL = '/models/avatar-hero.glb';
+
 const POINT_VERT = /* glsl */ `
   uniform float uTime; uniform float uForm; uniform float uSize; uniform float uScale;
   attribute vec3 aScatter; attribute float aRand;
@@ -45,7 +47,7 @@ const POINT_VERT = /* glsl */ `
 `;
 const POINT_FRAG = /* glsl */ `
   varying float vRand;
-  uniform float uLight;
+  uniform float uLight; uniform float uFade;
   #include <clipping_planes_pars_fragment>
   void main() {
     #include <clipping_planes_fragment>
@@ -55,7 +57,7 @@ const POINT_FRAG = /* glsl */ `
     float a = smoothstep(0.5, 0.05, d);
     vec3 col = mix(vec3(0.38, 0.6, 1.0), vec3(1.0, 0.56, 0.42), step(0.7, vRand));
     col *= mix(1.0, 0.62, uLight);
-    gl_FragColor = vec4(col, a * 0.92);
+    gl_FragColor = vec4(col, a * 0.92 * uFade);
   }
 `;
 
@@ -124,28 +126,12 @@ export function createStage(canvas) {
   fill.position.set(-3, -1, 3);
   scene.add(hemi, key, rim, fill);
 
-  // ---- avatar and its four layers
-  const rig = buildAvatar();
+  // ---- avatar and its four layers. The built-in procedural character is shown first; the rigged .glb replaces
+  // it as soon as it has loaded (mount() can run again with a new rig).
   const avatar = new THREE.Group();
   scene.add(avatar);
-  avatar.add(rig.root);
-
-  const yMin = rig.box.min.y;
-  const yMax = rig.box.max.y;
-  const H = yMax - yMin;
-  const MARGIN = 0.06;
-  const centerY = yMin + H / 2;
 
   const clayMat = new THREE.MeshStandardMaterial({ color: 0xf4d9c4, emissive: 0x6a5446, roughness: 0.95, metalness: 0, flatShading: true });
-  const clayMeshes = rig.finalMeshes.map((m) => {
-    const c = new THREE.Mesh(m.geometry, clayMat);
-    c.position.copy(m.position);
-    c.rotation.copy(m.rotation);
-    c.scale.copy(m.scale);
-    m.parent.add(c);
-    return c;
-  });
-
   const up = (c) => new THREE.Plane(new THREE.Vector3(0, 1, 0), c); // keeps y >= -c
   const down = (c) => new THREE.Plane(new THREE.Vector3(0, -1, 0), c); // keeps y <= c
   const planes = {
@@ -153,39 +139,12 @@ export function createStage(canvas) {
     wireLo: up(0), wireHi: down(0),
     clayLo: up(0), clayHi: down(0),
     fin: down(0),
+    rev: up(0), // keeps the part of the textured avatar that has not been swept into wireframe yet
   };
   clayMat.clippingPlanes = [planes.clayLo, planes.clayHi];
-  const finalMats = new Set(rig.finalMeshes.map((m) => m.material));
-  finalMats.forEach((m) => (m.clippingPlanes = [planes.fin]));
-
-  // wireframe layer
-  const wirePositions = [];
-  rig.baked.forEach((g) => wirePositions.push(new THREE.WireframeGeometry(g).attributes.position.array));
-  const wireArr = new Float32Array(wirePositions.reduce((n, a) => n + a.length, 0));
-  let o = 0;
-  wirePositions.forEach((a) => { wireArr.set(a, o); o += a.length; });
-  const wireGeo = new THREE.BufferGeometry();
-  wireGeo.setAttribute('position', new THREE.BufferAttribute(wireArr, 3));
   const wireMat = new THREE.LineBasicMaterial({ color: 0xff9f7e, transparent: true, opacity: 0.8, clippingPlanes: [planes.wireLo, planes.wireHi] });
-  const wire = new THREE.LineSegments(wireGeo, wireMat);
-  avatar.add(wire);
 
-  // point cloud layer
   const COUNT = narrowScreen ? 5500 : 10000;
-  const target = sampleSurface(rig.baked, COUNT);
-  const scatter = new Float32Array(COUNT * 3);
-  const rand = new Float32Array(COUNT);
-  const tmp = new THREE.Vector3();
-  for (let i = 0; i < COUNT; i++) {
-    tmp.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize().multiplyScalar(2.2 + Math.random() * 4.5);
-    tmp.y += 0.6;
-    scatter.set([tmp.x, tmp.y, tmp.z], i * 3);
-    rand[i] = Math.random();
-  }
-  const pGeo = new THREE.BufferGeometry();
-  pGeo.setAttribute('position', new THREE.BufferAttribute(target, 3));
-  pGeo.setAttribute('aScatter', new THREE.BufferAttribute(scatter, 3));
-  pGeo.setAttribute('aRand', new THREE.BufferAttribute(rand, 1));
   const pMat = new THREE.ShaderMaterial({
     vertexShader: POINT_VERT,
     fragmentShader: POINT_FRAG,
@@ -194,23 +153,98 @@ export function createStage(canvas) {
     blending: THREE.AdditiveBlending,
     clipping: true,
     clippingPlanes: [planes.pts],
-    uniforms: { uTime: { value: 0 }, uForm: { value: 0 }, uSize: { value: 0.03 }, uScale: { value: 500 }, uLight: { value: 0 } },
+    uniforms: { uTime: { value: 0 }, uForm: { value: 0 }, uSize: { value: 0.03 }, uScale: { value: 500 }, uLight: { value: 0 }, uFade: { value: 1 } },
   });
-  const points = new THREE.Points(pGeo, pMat);
-  points.frustumCulled = false;
-  avatar.add(points);
-
-  // export bounding box
-  const size = new THREE.Vector3();
-  rig.box.getSize(size);
-  const bbox = new THREE.LineSegments(
-    new THREE.EdgesGeometry(new THREE.BoxGeometry(size.x * 1.35, size.y * 1.06, size.z * 1.9)),
-    new THREE.LineBasicMaterial({ color: 0xb9d4de, transparent: true, opacity: 0 }),
-  );
-  const bc = new THREE.Vector3();
-  rig.box.getCenter(bc);
-  bbox.position.copy(bc);
+  const bbox = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xb9d4de, transparent: true, opacity: 0 }));
   avatar.add(bbox);
+
+  const MARGIN = 0.06;
+  const stats = { vertices: 0, triangles: 0 };
+  let rig = null;
+  let yMin = 0, yMax = 1, H = 1, centerY = 0.5;
+  let clayMeshes = [];
+  let finalMatList = [];
+  let wire = null;
+  let points = null;
+
+  function mount(next) {
+    if (rig) {
+      avatar.remove(rig.root, wire, points);
+      clayMeshes.forEach((c) => c.parent && c.parent.remove(c));
+      wire.geometry.dispose();
+      points.geometry.dispose();
+      if (rig.dispose) rig.dispose();
+      else { rig.finalMeshes.forEach((m) => m.geometry.dispose()); rig.baked.forEach((g) => g.dispose()); }
+    }
+    rig = next;
+    avatar.add(rig.root);
+    Object.assign(stats, rig.stats);
+
+    yMin = rig.box.min.y;
+    yMax = rig.box.max.y;
+    H = yMax - yMin;
+    centerY = yMin + H / 2;
+
+    clayMeshes = rig.makeClay
+      ? rig.makeClay(clayMat)
+      : rig.finalMeshes.map((m) => {
+        const c = new THREE.Mesh(m.geometry, clayMat);
+        c.position.copy(m.position);
+        c.rotation.copy(m.rotation);
+        c.scale.copy(m.scale);
+        m.parent.add(c);
+        return c;
+      });
+    finalMatList = [...new Set(rig.finalMeshes.map((m) => m.material))];
+    // visible where either plane keeps it: below the last sweep (render stage) or above the first one (top of the page)
+    finalMatList.forEach((m) => { m.clippingPlanes = [planes.fin, planes.rev]; m.clipIntersection = true; });
+
+    // wireframe layer (the .glb ships a very light copy of the body for this)
+    const wirePositions = (rig.wireGeos || rig.baked).map((g) => new THREE.WireframeGeometry(g).attributes.position.array);
+    const wireArr = new Float32Array(wirePositions.reduce((n, a) => n + a.length, 0));
+    let o = 0;
+    wirePositions.forEach((a) => { wireArr.set(a, o); o += a.length; });
+    const wireGeo = new THREE.BufferGeometry();
+    wireGeo.setAttribute('position', new THREE.BufferAttribute(wireArr, 3));
+    wire = new THREE.LineSegments(wireGeo, wireMat);
+    avatar.add(wire);
+
+    // point cloud layer
+    const target = sampleSurface(rig.baked, COUNT);
+    const scatter = new Float32Array(COUNT * 3);
+    const rand = new Float32Array(COUNT);
+    const tmp = new THREE.Vector3();
+    for (let i = 0; i < COUNT; i++) {
+      tmp.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize().multiplyScalar(2.2 + Math.random() * 4.5);
+      tmp.y += 0.6;
+      scatter.set([tmp.x, tmp.y, tmp.z], i * 3);
+      rand[i] = Math.random();
+    }
+    const pGeo = new THREE.BufferGeometry();
+    pGeo.setAttribute('position', new THREE.BufferAttribute(target, 3));
+    pGeo.setAttribute('aScatter', new THREE.BufferAttribute(scatter, 3));
+    pGeo.setAttribute('aRand', new THREE.BufferAttribute(rand, 1));
+    points = new THREE.Points(pGeo, pMat);
+    points.frustumCulled = false;
+    avatar.add(points);
+
+    // export bounding box
+    const size = new THREE.Vector3();
+    rig.box.getSize(size);
+    bbox.geometry.dispose();
+    bbox.geometry = new THREE.EdgesGeometry(new THREE.BoxGeometry(size.x * 1.35, size.y * 1.06, size.z * 1.9));
+    rig.box.getCenter(bbox.position);
+  }
+  mount(buildAvatar());
+
+  // Swap in the rigged .glb avatar. The point cloud waits (still scattered) until it is ready, up to a few seconds.
+  let avatarReady = false;
+  const readyTimer = setTimeout(() => { avatarReady = true; }, 6000);
+  import('./avatarGlb.js')
+    .then((m) => m.loadAvatarGlb(AVATAR_URL, { height: H, minY: yMin }))
+    .then((glb) => { mount(glb); })
+    .catch((err) => console.warn('Rigged avatar could not load, keeping the built-in character.', err))
+    .finally(() => { clearTimeout(readyTimer); avatarReady = true; });
 
   // ---- floor, shadow, pedestal, sweep ring, background primitives
   const floor = new THREE.Mesh(
@@ -266,6 +300,7 @@ export function createStage(canvas) {
 
   // ---- state
   let idxS = 0;
+  let reveal = 0; // 0..1: once the dots have formed the avatar at the top of the page, they dissolve into the textured model
   let form = 0;
   let lx = 0, ly = 0, ls = 1;
   let mx = 0, my = 0;
@@ -294,7 +329,7 @@ export function createStage(canvas) {
   function pick(cx, cy) {
     ndc.set((cx / window.innerWidth) * 2 - 1, -((cy / window.innerHeight) * 2 - 1));
     ray.setFromCamera(ndc, camera);
-    return ray.intersectObjects(rig.finalMeshes, false).length > 0;
+    return ray.intersectObjects(rig.pickMeshes || rig.finalMeshes, false).length > 0;
   }
   function poke() { pk.name = POKES[pokeN++ % POKES.length]; pk.t = 0; }
 
@@ -336,7 +371,7 @@ export function createStage(canvas) {
     [pMat, ringMat, sweepDisc.material].forEach((m) => { m.blending = bl; m.needsUpdate = true; });
   }
 
-  function update(dt, time, idx, mouse, timelinePose) {
+  function update(dt, time, idx, mouse, _timelinePose) {
     idxS += (idx - idxS) * (1 - Math.exp(-dt * 5));
     const I = idxS;
     mx += (mouse.x - mx) * (1 - Math.exp(-dt * 3));
@@ -371,10 +406,23 @@ export function createStage(canvas) {
     planes.clayLo.constant = -b2; planes.clayHi.constant = b1;
     planes.fin.constant = b2;
 
-    points.visible = s0 < 0.999;
+    // reveal: the intro dots gather into the avatar, then the finished textured model takes their place for good.
+    // Scrolling then sweeps that model straight into the wireframe scan (the dots never come back).
+    const rvTarget = avatarReady && form >= 0.999 ? 1 : 0;
+    reveal += (rvTarget - reveal) * (1 - Math.exp(-dt * (rvTarget ? 2.2 : 5)));
+    const rv = reveal < 0.003 ? 0 : reveal > 0.997 ? 1 : reveal;
+    planes.rev.constant = rv > 0 ? -b0 : -1000;
+    pMat.uniforms.uFade.value = 1 - rv;
+    finalMatList.forEach((m) => {
+      const t = rv > 0 && rv < 1;
+      if (m.transparent !== t) { m.transparent = t; m.needsUpdate = true; } // the shader is rebuilt when this flips
+      m.opacity = rv > 0 ? rv : 1;
+    });
+
+    points.visible = rv < 1; // intro only
     wire.visible = s0 > 0.001 && s1 < 0.999;
     clayMeshes.forEach((m) => (m.visible = s1 > 0.001 && s2 < 0.999));
-    rig.finalMeshes.forEach((m) => (m.visible = s2 > 0.001));
+    rig.finalMeshes.forEach((m) => (m.visible = s2 > 0.001 || rv > 0));
 
     // sweep ring follows whichever sweep is in progress
     let active = null;
@@ -395,16 +443,17 @@ export function createStage(canvas) {
     }
 
     // points intro
-    if (form < 1) form = Math.min(1, form + dt / 3.2);
+    if (avatarReady && form < 1) form = Math.min(1, form + dt / 3.2);
     pMat.uniforms.uForm.value = form;
     pMat.uniforms.uTime.value = reduce ? 0 : time;
 
     // lights ramp up at the Render stage
     const lk = ramp(I, 2.55, 3.2);
-    hemi.intensity = lerp(0.95, 0.42, lk);
-    key.intensity = lerp(0.35, 2.7, lk);
-    rim.intensity = lerp(0, 2.2, lk);
-    fill.intensity = lerp(0, 0.9, lk);
+    const lkv = Math.max(lk, rv * 0.85 * (1 - ramp(I, 0.75, 0.9))); // the textured avatar at the top is lit like the finished render
+    hemi.intensity = lerp(0.95, 0.42, lkv);
+    key.intensity = lerp(0.35, 2.7, lkv);
+    rim.intensity = lerp(0, 2.2, lkv);
+    fill.intensity = lerp(0, 0.9, lkv);
 
     // pedestal, shadow, floor
     pedestal.position.set(avatar.position.x, feetY, 0);
@@ -413,7 +462,7 @@ export function createStage(canvas) {
     pedestal.visible = lk > 0.01;
     shadow.position.set(avatar.position.x, feetY + 0.004, 0);
     shadow.scale.setScalar(ls);
-    shadow.material.opacity = ramp(I, 1.3, 2.2) * 0.55 * (1 - lk * 0.6);
+    shadow.material.opacity = Math.max(ramp(I, 1.3, 2.2) * 0.55, rv * 0.5 * (1 - ramp(I, 0.75, 0.9))) * (1 - lk * 0.6);
     floor.position.y = feetY - 0.004;
     floor.material.uniforms.uCenter.value.set(avatar.position.x, 0, 0);
 
@@ -425,11 +474,7 @@ export function createStage(canvas) {
       idle.hdY += Math.sin(time * 0.7) * 0.08;
     }
     let pose = idle;
-    let tlw = 0;
-    if (timelinePose) {
-      tlw = ramp(I, 3.35, 3.8) * (1 - ramp(I, 4.55, 4.95));
-      pose = mixPose(idle, timelinePose, tlw);
-    }
+    const tlw = 0; // the Education and Experience timeline no longer makes the avatar act
     let pw = 0;
     if (pk.name) {
       pk.t += dt;
@@ -437,7 +482,8 @@ export function createStage(canvas) {
       if (pk.t > 2.6) pk.name = null;
       else pose = mixPose(pose, POSES[pk.name], pw);
     }
-    applyPose(rig, pose, time);
+    if (rig.apply) rig.apply(pose, time);
+    else applyPose(rig, pose, time);
 
     // turn: face the text a little, drift with scroll, follow the mouse, face front during animation
     const face = -Math.max(-1, Math.min(1, lx / (hw * 0.6 + 0.001))) * 0.38;
@@ -498,5 +544,5 @@ export function createStage(canvas) {
     });
   }
 
-  return { update, resize, drawGizmo, stats: rig.stats, renderer, pick, poke, setTheme, orbitStart, orbitMove, orbitEnd };
+  return { update, resize, drawGizmo, stats, renderer, pick, poke, setTheme, orbitStart, orbitMove, orbitEnd };
 }

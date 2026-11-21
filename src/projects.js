@@ -246,8 +246,28 @@ export function initProjects(content, onLayout) {
             <button type="button" class="btn" data-s="1" aria-pressed="false">${esc(t(STAGE_KEYS[1]))}</button>
             <button type="button" class="btn" data-s="2" aria-pressed="true">${esc(t(STAGE_KEYS[2]))}</button>
           </div></div>
+        <div class="pm-sl pm-anim" id="pmAnim" hidden><span>${esc(t('pm.anim'))}</span>
+          <div class="pm-seg" role="group" aria-label="${esc(t('pm.anim'))}"></div></div>
       </div>
       <span class="pm-hint mono">${esc(t('pm.hint'))}</span>`;
+  }
+
+  // rigged models ship animation clips: one button per clip (idle is the default)
+  function setupAnim(v) {
+    const box = $('#pmAnim');
+    if (!box || !box.hidden) return;
+    const clips = v.animations();
+    if (!clips.length) return;
+    const first = Math.max(0, clips.indexOf('idle'));
+    const seg = box.querySelector('.pm-seg');
+    seg.innerHTML = clips.map((c, i) => `<button type="button" class="btn" data-a="${esc(c)}" aria-pressed="${i === first}">${esc(c.charAt(0).toUpperCase() + c.slice(1))}</button>`).join('');
+    box.hidden = false;
+    seg.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-a]');
+      if (!btn) return;
+      seg.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === btn)));
+      v.play(btn.dataset.a);
+    });
   }
 
   function showView(p, kind) {
@@ -260,17 +280,18 @@ export function initProjects(content, onLayout) {
       const state = $('#pmState');
       const ctrl = $('#pmCtrl');
       import('./viewer.js').then(({ mountViewer }) => mountViewer(media, p.model, (s) => {
-        if (s === 'ready') { state.remove(); ctrl.hidden = false; }
+        if (s === 'ready') { state.remove(); ctrl.hidden = false; if (viewer) setupAnim(viewer); }
         else { state.textContent = t('pm.fail'); }
       }, p.view)).then((v) => {
         if (current !== p) { v.dispose(); return; }
         viewer = v;
-        $('#pmCtrl').querySelector('.pm-seg').addEventListener('click', (e) => {
+        $('#pmCtrl').querySelector('.pm-stage .pm-seg').addEventListener('click', (e) => {
           const btn = e.target.closest('button[data-s]');
           if (!btn) return;
-          $('#pmCtrl').querySelectorAll('.pm-seg button').forEach((x) => x.setAttribute('aria-pressed', String(x === btn)));
+          $('#pmCtrl').querySelectorAll('.pm-stage .pm-seg button').forEach((x) => x.setAttribute('aria-pressed', String(x === btn)));
           v.setStage(+btn.dataset.s);
         });
+        setupAnim(v);
       }).catch(() => { state.textContent = t('pm.nowebgl'); });
     } else if (kind === 'play') {
       media.innerHTML = `
