@@ -627,7 +627,8 @@ html.rtl .lang-sel { text-align: start; }
 [data-theme='light'] .pipe button b { background: #25505f !important; color: #e7f2f3 !important; }
 [data-theme='light'] .pipe button.on b { background: var(--orange) !important; color: #2a1608 !important; }
 [data-theme='light'] .pipe-rail { background: #2f5a69; }
-[data-theme='light'] .tool-btn, [data-theme='light'] .lang-sel { background: #12303b !important; color: #e7f2f3 !important; }
+[data-theme='light'] .tool-btn, [data-theme='light'] .lang-sel { background: #e6dfcf !important; color: #13303a !important; }
+[data-theme='light'] .tool-btn:hover, [data-theme='light'] .lang-sel:hover { background: #f2eee4 !important; }
 [data-theme='light'] .btn:not(.btn-primary):not([aria-pressed='true']), [data-theme='light'] .pf button:not([aria-pressed='true']) { background: #12303b !important; color: #f3efe6 !important; }
 [data-theme='light'] .pf button[aria-pressed='true'] { background: var(--orange) !important; color: #2a1608 !important; }
 [data-theme='light'] .props > header, [data-theme='light'] .export > header, [data-theme='light'] .dope > header { background: #12303b !important; color: #e7f2f3 !important; }
