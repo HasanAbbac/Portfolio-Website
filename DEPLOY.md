@@ -12,10 +12,12 @@ Two hosts are supported. **Vercel** (free) is what the live site uses; **Render*
    - `MAIL_TO` (optional, defaults to the address in `.env.example`)
    - `SITE_URL` is optional: on Vercel the production address is used automatically for the canonical URL, `sitemap.xml` and social previews. Set it only for a custom domain.
 3. **Redeploy** after adding or changing variables (they apply to new deployments only).
-4. Check: open `/api/chat/status` (it should say `{"ready":true}`), `/sitemap.xml`, ask the assistant a question, send yourself a contact message.
+4. **Make the site public.** In the Vercel project open **Settings, Deployment Protection** and set **Vercel Authentication** to **Disabled** for Production (or "Only Preview Deployments"). While it is on, every visitor, including recruiters, is sent to a Vercel sign-in page instead of the portfolio. Test from a private/incognito window that you are NOT signed in to Vercel in: the home page, `/Hasan_Abbasi_CV.pdf` and `/api/chat/status` must all open.
+5. Check: open `/api/chat/status` (it should say `{"ready":true}`), `/sitemap.xml`, ask the assistant a question, send yourself a contact message. Make sure `MAIL_DRY_RUN` is NOT set (or is `false`) in Vercel: with it on, the form says "Test mode" and sends nothing.
 
 How the chatbot differs on Vercel: the 23 MB local embedding model cannot run in a serverless function, so retrieval uses keyword search (word stems and synonyms, see `server/rag/lexical.js`). A question in another language is first translated to English by Gemini, then searched, and the answer is written in the page language. That is two Gemini calls for a non-English question and one for an English question. The free Gemini tier allows about 15 calls per minute, which is plenty for a portfolio; if it is exceeded, English questions fall back to quoting your documents and non-English ones get a polite "I don't have that information".
-Rate limits (contact form, chat) are kept in memory per function instance, so they are looser than on Render.
+Rate limits (contact form, chat) are kept in memory per function instance, so they are looser than on Render. The client address comes from Vercel's own `x-vercel-forwarded-for` header, and request bodies over 10 kB are refused with HTTP 413, the same as on Render.
+The Content Security Policy allows Google Fonts on purpose: the Arabic, Urdu and Chinese pages load their fonts from there (the Latin fonts are self-hosted). If you ever self-host those too, remove `fonts.googleapis.com` and `fonts.gstatic.com` from `vercel.json` and `server/index.js`.
 After changing `knowledge/*.md` or `src/content.js`, run `npm run rag:build` on your computer and commit the updated `server/rag/index.json`.
 
 ---
@@ -43,5 +45,6 @@ The site, the contact form and the AI assistant run as one Node service. Nothing
 ## Good to know
 - Free Render services sleep after 15 minutes without visitors; the first visit afterwards takes about 30 seconds. This is a plan limit, not a bug.
 - Rotate keys if they were ever shared: make new ones in Brevo and Google AI Studio, paste them into Render, delete the old ones.
+- The server gzips text responses and caches the hashed files under `/assets` for a year, so repeat visits are fast even on the free plan.
 - Limits (messages per visitor, questions per visitor, assistant calls per hour) can be changed with the variables at the bottom of `.env.example`.
 - Behind Render exactly one proxy is in front of the server, so `TRUST_PROXY=1` is correct. If you host somewhere without a proxy, set it to `0`.

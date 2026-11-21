@@ -3,7 +3,7 @@ import { createLlm, createClaudeRewriter } from '../../server/rag/llm.js';
 import { pickAnswerer } from '../../server/rag/gemini.js';
 import { answerQuestion } from '../../server/rag/answer.js';
 import { clean } from '../../server/mail.js';
-import { allow, clientIp, num, body } from '../../server/vercel-helpers.js';
+import { allow, clientIp, num, body, tooLarge } from '../../server/vercel-helpers.js';
 
 // Retrieval is keyword-based here (embedFn: null): the local embedding model cannot run in a serverless function.
 // The language model (Gemini, else Claude) still writes the answer from the retrieved passages.
@@ -14,6 +14,7 @@ const getRewrite = () => (pick() ? pick().rewrite : null);
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') { res.setHeader('Allow', 'POST'); return res.status(405).json({ error: 'Method not allowed' }); }
+  if (tooLarge(req)) return res.status(413).json({ error: 'Message is too large.' });
   const win = num('CHAT_WINDOW_MINUTES', 10) * 60 * 1000;
   if (!allow('chat:' + clientIp(req), num('CHAT_LIMIT', 20), win)) {
     return res.status(429).json({ error: 'Too many questions in a short time. Please try again in a few minutes.' });
@@ -35,7 +36,7 @@ export default async function handler(req, res) {
     try {
       r = await answerQuestion({ question, history, lang }, deps);
     } catch (err) {
-      console.error('[chat] LLM step failed:', err.code || err.message);
+      console.error('[chat] LLM step failed:', err.code || err.message, err.status || '');
       r = await answerQuestion({ question, history, lang }, { ...deps, llm: null });
     }
     return res.status(200).json({ answer: r.answer, sources: r.sources, mode: r.mode });

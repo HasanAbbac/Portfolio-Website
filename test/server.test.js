@@ -69,6 +69,13 @@ test('too-fast and missing-timing submissions are rejected with a retryable erro
   const { elapsed: _e, ...noElapsed } = good;
   assert.equal((await post(39101, noElapsed)).status, 400);
 });
+test('an empty request is told which fields are wrong, not "wait a moment"', async () => {
+  const r = await post(39101, {});
+  assert.equal(r.status, 400);
+  assert.ok(r.json.errors && r.json.errors.name, 'field errors are returned');
+  assert.notEqual(r.json.code, 'too_fast');
+});
+
 test('invalid fields return 400 with per-field errors', async () => {
   const r = await post(39101, { ...good, email: 'bad' });
   assert.equal(r.status, 400);

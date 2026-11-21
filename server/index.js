@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import express from 'express';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import compression from 'compression';
 import nodemailer from 'nodemailer';
 import { validate, isTooFast, buildMail, clean } from './mail.js';
 import { loadIndex } from './rag/store.js';
@@ -40,6 +41,7 @@ function trustProxySetting() {
 const app = express();
 app.set('trust proxy', trustProxySetting());
 app.disable('x-powered-by');
+app.use(compression()); // gzip text files (JS, CSS, HTML, JSON); Vercel does this itself
 
 // Browser features this site never uses stay switched off, even if a script tried to use them.
 app.use((_req, res, next) => {
@@ -67,15 +69,17 @@ const GAMES_CSP = {
     'frame-ancestors': ["'self'"],
   },
 };
-app.use('/games', helmet({ contentSecurityPolicy: GAMES_CSP, crossOriginEmbedderPolicy: false, strictTransportSecurity: HTTPS_ONLY }), express.static(path.join(distDir, 'games'), { maxAge: '1h' }));
+app.use('/games', helmet({ contentSecurityPolicy: GAMES_CSP, crossOriginEmbedderPolicy: false, strictTransportSecurity: HTTPS_ONLY, referrerPolicy: { policy: 'strict-origin-when-cross-origin' } }), express.static(path.join(distDir, 'games'), { maxAge: '1h' }));
 app.use(
   helmet({
     strictTransportSecurity: HTTPS_ONLY,
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' }, // the same value vercel.json sends
     contentSecurityPolicy: {
       useDefaults: true,
       directives: {
         // 'wasm-unsafe-eval' lets the Draco decoder (WebAssembly) read the compressed 3D models; it does not allow eval() of strings
         'script-src': ["'self'", "'wasm-unsafe-eval'"],
+        // Latin fonts are self-hosted; the Arabic, Urdu and Chinese pages load their fonts from Google Fonts, and the 3D UI sets inline styles
         'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
         'font-src': ["'self'", 'https://fonts.gstatic.com'],
         'img-src': ["'self'", 'data:', 'blob:'],
@@ -130,11 +134,12 @@ app.post('/api/contact', contactAbuseLimiter, contactLimiter, async (req, res) =
   // honeypot: a hidden field that people never fill. Bots get a fake success so they learn nothing.
   if (clean(body.company, 50) !== '') return res.status(200).json({ ok: true });
 
-  // speed check: reject (not silently drop) a form filled in faster than a person could, so a real visitor can simply press Send again
-  if (isTooFast(body)) return res.status(400).json({ error: 'Please wait a moment and try again.', code: 'too_fast' });
-
+  // field errors come first, so an empty or broken request is told what is wrong instead of "wait a moment"
   const { data, errors } = validate(body);
   if (Object.keys(errors).length) return res.status(400).json({ error: 'Check the highlighted fields.', errors });
+
+  // speed check: reject (not silently drop) a form filled in faster than a person could, so a real visitor can simply press Send again
+  if (isTooFast(body)) return res.status(400).json({ error: 'Please wait a moment and try again.', code: 'too_fast' });
 
   const mail = buildMail(data, { from: process.env.BREVO_SENDER_EMAIL || process.env.SMTP_USER || 'portfolio@localhost', to: MAIL_TO });
 
@@ -221,7 +226,7 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
       r = await answerQuestion({ question, history, lang }, deps);
     } catch (err) {
       // the LLM failed (bad key, busy, network): still answer from the documents instead of showing an error
-      console.error('[chat] LLM step failed:', err.code || err.message);
+      console.error('[chat] LLM step failed:', err.code || err.message, err.status || '');
       r = await answerQuestion({ question, history, lang }, { ...deps, llm: null });
     }
     return res.json({ answer: r.answer, sources: r.sources, mode: r.mode });
@@ -238,7 +243,13 @@ app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found' }));
 // every other URL gets a proper 404 status (not the home page with a 200).
 const dist = path.join(__dirname, '..', 'dist');
 if (fs.existsSync(dist)) {
-  app.use(express.static(dist, { maxAge: '1h', index: 'index.html' }));
+  // file names under /assets carry a content hash, so they can be cached for a year
+  app.use('/assets', express.static(path.join(dist, 'assets'), { maxAge: '365d', immutable: true }));
+  // fonts and the Draco decoder never change; models and pictures may be replaced, so they are cached for a day only
+  for (const d of ['fonts', 'draco']) app.use(`/${d}`, express.static(path.join(dist, d), { maxAge: '365d', immutable: true }));
+  for (const d of ['models', 'projects', 'certs']) app.use(`/${d}`, express.static(path.join(dist, d), { maxAge: '1d' }));
+  // the page itself is always re-checked (so a new deploy shows up at once); everything else may be cached for an hour
+  app.use(express.static(dist, { maxAge: '1h', index: 'index.html', setHeaders: (res, file) => { if (file.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache'); } }));
   app.use((_req, res) => {
     const page = path.join(dist, '404.html');
     res.status(404);
@@ -262,6 +273,7 @@ app.listen(PORT, () => {
     if (!DRY_RUN && !brevo && !process.env.SMTP_HOST) missing.push('email (BREVO_API_KEY and BREVO_SENDER_EMAIL)');
     if (!getAnswerer()) missing.push('chat answers (GEMINI_API_KEY); the assistant will quote your documents instead');
     if (missing.length) console.warn(`[server] WARNING: not configured: ${missing.join('; ')}`);
+    if (DRY_RUN) console.warn('[server] WARNING: MAIL_DRY_RUN is true, so contact messages are NOT being sent.');
     if (!fs.existsSync(dist)) console.warn('[server] WARNING: dist/ not found. Run "npm run build" before "npm start".');
   }
   if (!KEYWORD_ONLY && loadIndex()) warmup().then(() => console.log(`[chat] ready (${getAnswerer() ? getAnswerer().name : 'extractive'} answers)`)).catch((e) => console.warn('[chat] embedding model not available yet, using keyword search:', e.message));

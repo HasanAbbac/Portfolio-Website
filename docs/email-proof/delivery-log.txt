@@ -2,3 +2,4 @@
 [2026-11-20T16:27:37.839Z] via-site http://localhost:3005/api/contact -> HTTP 200 {"ok":true}  token=DELIVERY-TEST-20261120162737
 [2026-11-20T17:00:08.322Z] via-site http://localhost:3005/api/contact -> HTTP 503 {"error":"The mail service is not set up yet. Please email me directly."}  token=DELIVERY-TEST-20261120170008
 [2026-11-20T17:00:57.613Z] via-site http://localhost:3005/api/contact -> HTTP 200 {"ok":true}  token=DELIVERY-TEST-20261120170057
+[2026-11-21T17:39:31.991Z] SENT via Brevo to=hasan.x.abbasi@gmail.com sender=hasan.x.abbasi@gmail.com replyTo=hasan.x.abbasi@gmail.com messageId=<202611211739.96812980360@smtp-relay.mailin.fr> http=201 token=DELIVERY-TEST-20261121173931

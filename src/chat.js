@@ -123,6 +123,8 @@ export async function initChat({ ui }) {
   if (fab) fab.addEventListener('click', toggle);
   $('#chatClose').addEventListener('click', () => close());
   panel.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } });
+  // Escape also closes the panel when focus is elsewhere on the page (but not while a popup dialog is open: that one takes the key)
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !panel.hidden && !e.defaultPrevented && !document.querySelector('dialog[open]')) close(); });
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const q = input.value.trim();

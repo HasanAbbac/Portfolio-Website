@@ -8,6 +8,11 @@ import { CONTENT } from '../../src/content.js';
 import { t } from '../../src/i18n.js';
 
 const TYPE_LABEL = { model: '3D model made in Blender, with an interactive 3D viewer', web: 'browser game that can be played on the site', unity: 'game built in Unity', unreal: 'game built in Unreal Engine' };
+// Card tags mix real software (Blender, Unity) with categories (Game, VR, Racing). Keeping them apart stops an answer such as
+// "technologies used: Unity, VR, Game".
+const CATEGORY_TAGS = new Set(CONTENT.techniques || []);
+const toolsOf = (p) => (p.tags || []).filter((x) => !CATEGORY_TAGS.has(x)).join(', ');
+const catsOf = (p) => (p.tags || []).filter((x) => CATEGORY_TAGS.has(x)).join(', ');
 const SKILL_GROUP = { '3D': '3D', Engines: 'Game engines', Code: 'Programming and tools' };
 
 const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -41,7 +46,7 @@ export function buildDocs() {
   const byType = (ty) => CONTENT.projects.filter((p) => p.type === ty).map((p) => p.title);
   docs.push({ id: 'projects-overview', title: 'Projects overview', href: '#projects', label: 'Projects', text: `The portfolio shows ${CONTENT.projects.length} projects. 3D models made in Blender: ${byType('model').join(', ')}. Browser games built with Three.js and JavaScript: ${byType('web').join(', ')}.${byType('unity').length ? ` Unity games: ${byType('unity').join(', ')}.` : ''}${byType('unreal').length ? ` Unreal Engine games: ${byType('unreal').join(', ')}.` : ''} Visitors can search the projects, filter them by category and by technique, open each in a popup, rotate the 3D models and play the games.` });
   CONTENT.projects.forEach((p, i) => {
-    const bits = [`Project: ${p.title}. It is a ${TYPE_LABEL[p.type] || 'project'}${p.type !== 'model' && p.play ? ', playable on the site' : p.video ? ', shown as a gameplay video on the site' : ''}.`, p.text, p.tags && p.tags.length ? `Tools and techniques: ${p.tags.join(', ')}.` : '', p.year ? `Year: ${p.year}.` : '', p.role ? `Hasan's role: ${p.role}.` : '', p.links && p.links.length ? `Links: ${p.links.map((l) => `${l.label} ${l.href}`).join(', ')}.` : ''];
+    const bits = [`Project: ${p.title}. It is a ${TYPE_LABEL[p.type] || 'project'}${p.type !== 'model' && p.play ? ', playable on the site' : p.video ? ', shown as a gameplay video on the site' : ''}.`, p.text, toolsOf(p) ? `Software and tools used: ${toolsOf(p)}.` : '', catsOf(p) ? `Categories: ${catsOf(p)}.` : '', p.year ? `Year: ${p.year}.` : '', p.role ? `Hasan's role: ${p.role}.` : '', p.links && p.links.length ? `Links: ${p.links.map((l) => `${l.label} ${l.href}`).join(', ')}.` : ''];
     docs.push({ id: `project-${slug(p.title)}`, title: `Project: ${p.title}`, href: '#projects', label: p.title, projectIndex: i, text: bits.filter(Boolean).join(' ') });
   });
 

@@ -163,39 +163,48 @@ export function buildAvatar() {
   return { ...rig, baked, box, stats: { vertices, triangles } };
 }
 
-// Evenly sample points over the surface of the baked meshes.
+// Evenly sample points over the surface of the baked meshes. Works straight on the typed arrays (no per-triangle objects),
+// so even an 80,000-triangle avatar is sampled in a few milliseconds.
 export function sampleSurface(baked, count) {
-  const tris = [];
+  const parts = [];
   let total = 0;
-  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
-  baked.forEach((g0) => {
-    const g = g0.index ? g0.toNonIndexed() : g0;
-    const pos = g.attributes.position;
-    for (let i = 0; i < pos.count; i += 3) {
-      a.fromBufferAttribute(pos, i);
-      b.fromBufferAttribute(pos, i + 1);
-      c.fromBufferAttribute(pos, i + 2);
-      const area = new THREE.Triangle(a, b, c).getArea();
-      total += area;
-      tris.push({ a: a.clone(), b: b.clone(), c: c.clone(), cum: total });
+  baked.forEach((g) => {
+    const pos = g.attributes.position.array;
+    const idx = g.index ? g.index.array : null;
+    const tris = idx ? idx.length / 3 : pos.length / 9;
+    const cum = new Float64Array(tris);
+    let sum = 0;
+    for (let t = 0; t < tris; t++) {
+      const i0 = (idx ? idx[t * 3] : t * 3) * 3;
+      const i1 = (idx ? idx[t * 3 + 1] : t * 3 + 1) * 3;
+      const i2 = (idx ? idx[t * 3 + 2] : t * 3 + 2) * 3;
+      const ux = pos[i1] - pos[i0], uy = pos[i1 + 1] - pos[i0 + 1], uz = pos[i1 + 2] - pos[i0 + 2];
+      const vx = pos[i2] - pos[i0], vy = pos[i2 + 1] - pos[i0 + 1], vz = pos[i2 + 2] - pos[i0 + 2];
+      const cx = uy * vz - uz * vy, cy = uz * vx - ux * vz, cz = ux * vy - uy * vx;
+      sum += 0.5 * Math.sqrt(cx * cx + cy * cy + cz * cz);
+      cum[t] = sum;
     }
+    if (tris) parts.push({ pos, idx, tris, cum, start: total, area: sum });
+    total += sum;
   });
   const out = new Float32Array(count * 3);
-  const v = new THREE.Vector3();
-  for (let i = 0; i < count; i++) {
+  if (!parts.length) return out; // nothing to sample yet (the placeholder before the avatar has loaded)
+  for (let n = 0; n < count; n++) {
     const r = Math.random() * total;
-    let lo = 0, hi = tris.length - 1;
+    let p = parts[parts.length - 1];
+    for (let k = 0; k < parts.length; k++) if (r < parts[k].start + parts[k].area) { p = parts[k]; break; }
+    const local = r - p.start;
+    let lo = 0, hi = p.tris - 1;
     while (lo < hi) {
       const mid = (lo + hi) >> 1;
-      if (tris[mid].cum < r) lo = mid + 1; else hi = mid;
+      if (p.cum[mid] < local) lo = mid + 1; else hi = mid;
     }
-    const t = tris[lo];
+    const i0 = (p.idx ? p.idx[lo * 3] : lo * 3) * 3;
+    const i1 = (p.idx ? p.idx[lo * 3 + 1] : lo * 3 + 1) * 3;
+    const i2 = (p.idx ? p.idx[lo * 3 + 2] : lo * 3 + 2) * 3;
     let u = Math.random(), w = Math.random();
     if (u + w > 1) { u = 1 - u; w = 1 - w; }
-    v.copy(t.a)
-      .add(new THREE.Vector3().subVectors(t.b, t.a).multiplyScalar(u))
-      .add(new THREE.Vector3().subVectors(t.c, t.a).multiplyScalar(w));
-    out[i * 3] = v.x; out[i * 3 + 1] = v.y; out[i * 3 + 2] = v.z;
+    for (let a = 0; a < 3; a++) out[n * 3 + a] = p.pos[i0 + a] + (p.pos[i1 + a] - p.pos[i0 + a]) * u + (p.pos[i2 + a] - p.pos[i0 + a]) * w;
   }
   return out;
 }

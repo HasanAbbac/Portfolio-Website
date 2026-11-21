@@ -162,8 +162,16 @@ export async function answerQuestion({ question, history = [], lang = 'en' }, { 
   if (!english && !embedFn && NON_LATIN.test(question)) return { answer: refusal, sources: [], mode: 'refusal', score: 0, method: 'keywords' };
 
   // Otherwise search with the English translation when there is one (embeddings or keywords).
-  const query = english || buildQuery(question, history);
-  const { hits, method, minScore } = await retrieve(query, index, { embedFn });
+  // A short follow-up ("and his education?") is first searched on its own, so a misleading earlier question cannot derail it.
+  // Only when that finds nothing is it joined with the previous question ("and the second one?").
+  let query = english || question;
+  let found = await retrieve(query, index, { embedFn });
+  const joined = buildQuery(question, history);
+  if (!english && joined !== question && (!found.hits.length || found.hits[0].score < found.minScore)) {
+    const again = await retrieve(joined, index, { embedFn });
+    if (again.hits.length && again.hits[0].score >= again.minScore) { query = joined; found = again; }
+  }
+  const { hits, method, minScore } = found;
   const best = hits[0] ? hits[0].score : 0;
   if (!hits.length || best < minScore) return { answer: refusal, sources: [], mode: 'refusal', score: best, method };
 

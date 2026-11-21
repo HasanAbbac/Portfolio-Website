@@ -1,9 +1,9 @@
 # Hasan Abbasi: interactive 3D portfolio
 
 A scroll-driven 3D portfolio built around one idea: **scrolling walks you through a Blender render pipeline.**
-A low-poly avatar is revealed layer by layer as you scroll (Vertices, Wireframe, Material, Render, Animation, Export) and each stage is a section of the site.
+A rigged 3D avatar (a photo-scanned character with a 21-bone skeleton, loaded from `public/models/avatar-hero.glb`) is built from scattered points when the page opens, then swept into a wireframe, a clay render and the finished materials as you scroll (Vertices, Wireframe, Material, Render, Animation, Export). Each stage is a section of the site. If the model cannot load, a built-in low-poly character is used instead.
 
-**Sections:** Home, About, Skills (node graph), Projects (gallery with 3D viewer and playable games), Education and experience (dope-sheet timeline), Contact (export dialog).
+**Sections:** Home, About, Skills (node graph), Projects (gallery with 3D viewer and playable games), Education and experience (dope-sheet timeline you can scrub), Contact (export dialog).
 **Also:** an AI assistant that answers questions about Hasan from his own documents (RAG) in all seven site languages, a draggable avatar (drag it sideways to turn it; it eases back to its resting pose), project search with category, tool and sort filters, dark and light themes, 7 languages (English, Arabic, Chinese, French, Spanish, Turkish, Urdu), a quick menu (press K), keyboard and screen-reader support.
 
 ## Tech
@@ -36,9 +36,9 @@ A GitHub Actions workflow (`.github/workflows/ci.yml`) runs lint, build, tests a
 Edit `.env`:
 - `MAIL_TO`: where messages are delivered.
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`: for Gmail use `smtp.gmail.com`, port 465, and a Google **App Password** (Account, Security, 2-Step Verification, App passwords). Never use your normal password.
-- `MAIL_DRY_RUN=true`: logs messages to the terminal instead of sending. Use it for testing, then set it back to `false`.
+- `MAIL_DRY_RUN=true`: logs messages to the terminal instead of sending. The page then says "Test mode" instead of "sent", and a production server warns at start-up. Use it for testing, then set it back to `false`.
 
-Protections: hidden honeypot field, a minimum-fill-time check (a too-fast submit is rejected with a message so a real visitor can just press Send again), rate limit (5 accepted messages per 15 minutes per visitor, plus a looser cap on all attempts; adjustable in `.env`), 10 kB body limit, server-side validation, header-injection and HTML escaping. **Send one real test message with your SMTP settings before you go live; the automated tests only use dry-run mode.**
+Protections: hidden honeypot field, a minimum-fill-time check (field errors are reported first; a too-fast submit is rejected with a message so a real visitor can just press Send again), rate limit (5 accepted messages per 15 minutes per visitor, plus a looser cap on all attempts; adjustable in `.env`), 10 kB body limit, server-side validation, header-injection and HTML escaping. **Send one real test message with your SMTP settings before you go live; the automated tests only use dry-run mode.**
 
 ## AI assistant (RAG chatbot)
 Visitors can ask questions about you in the chat panel (the chat button in the top bar, or "Ask AI" bottom left). It retrieves the most relevant passages from your CV, projects, skills and timeline, and answers only from them; if the answer is not in your documents it says so instead of inventing one. Sources are shown under each answer. A short explanation of the pipeline, the measured quality and the settings is in **`docs/RAG-PIPELINE.md`**.

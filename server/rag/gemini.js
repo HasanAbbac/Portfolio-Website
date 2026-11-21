@@ -6,6 +6,8 @@ import { NOT_FOUND, SYSTEM_PROMPT, REWRITE_PROMPT, langName, original } from './
 // Model names change over time, so the id is configurable. Check https://ai.google.dev/gemini-api/docs/models for the
 // current fast model on your free tier and set GEMINI_CHAT_MODEL if the default is retired.
 export const GEMINI_MODEL = process.env.GEMINI_CHAT_MODEL || 'gemini-3.5-flash-lite';
+// Google's own alias for the current fast model: used only if GEMINI_CHAT_MODEL (or the default id) stops existing.
+const FALLBACK_MODEL = 'gemini-flash-lite-latest';
 const BASE_URL = process.env.GEMINI_API_URL || 'https://generativelanguage.googleapis.com/v1beta';
 
 export function createGeminiLlm({
@@ -13,12 +15,13 @@ export function createGeminiLlm({
   model = GEMINI_MODEL,
   baseUrl = BASE_URL,
   fetchFn = fetch,
-  timeoutMs = 20000,
+  timeoutMs = 12000,
   retryDelayMs = 800,
 } = {}) {
   if (!apiKey) return null;
 
   // passages: [{ n, title, text }]. history: [{ role: 'user' | 'assistant', content }]
+  let activeModel = model;
   return async function ask({ question, history = [], passages, lang = 'en', translation }) {
     const context = passages.map((p) => `<passage n="${p.n}" source="${p.title.replace(/"/g, "'")}">\n${p.text}\n</passage>`).join('\n');
     const contents = [
@@ -35,7 +38,7 @@ export function createGeminiLlm({
     let res;
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
-        res = await fetchFn(`${baseUrl}/models/${encodeURIComponent(model)}:generateContent`, {
+        res = await fetchFn(`${baseUrl}/models/${encodeURIComponent(activeModel)}:generateContent`, {
           method: 'POST',
           headers: { 'content-type': 'application/json', 'x-goog-api-key': apiKey },
           body: JSON.stringify(body),
@@ -44,7 +47,8 @@ export function createGeminiLlm({
       } catch {
         throw Object.assign(new Error('The assistant could not answer right now.'), { code: 'llm_error' });
       }
-      if (res.ok || attempt === 1 || !(res.status === 403 || res.status >= 500)) break;
+      if (res.ok || attempt === 1 || !(res.status === 403 || res.status === 404 || res.status >= 500)) break;
+      if (res.status === 404 && activeModel !== FALLBACK_MODEL) activeModel = FALLBACK_MODEL; // the configured model id was retired
       await new Promise((r) => setTimeout(r, retryDelayMs));
     }
     if (!res.ok) {

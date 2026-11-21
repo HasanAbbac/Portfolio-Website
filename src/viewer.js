@@ -1,4 +1,4 @@
-import { WebGLRenderer, ACESFilmicToneMapping, Scene, PMREMGenerator, PerspectiveCamera, DirectionalLight, Box3, Vector3, GridHelper, MeshBasicMaterial, AnimationMixer, Clock, LoopRepeat } from 'three';
+import { WebGLRenderer, ACESFilmicToneMapping, Scene, PMREMGenerator, PerspectiveCamera, DirectionalLight, Box3, Vector3, GridHelper, MeshBasicMaterial } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -45,17 +45,7 @@ export async function mountViewer(host, url, onState, view = {}) {
   const ro = new ResizeObserver(resize);
   ro.observe(host);
   resize();
-  // rigged models: play the clips stored in the .glb (idle, wave, walk...)
-  const clock = new Clock();
-  let mixer = null;
-  const clips = {};
-  let currentAction = null;
-  const loop = () => {
-    raf = requestAnimationFrame(loop);
-    if (mixer) mixer.update(Math.min(clock.getDelta(), 0.1));
-    controls.update();
-    renderer.render(scene, camera);
-  };
+  const loop = () => { raf = requestAnimationFrame(loop); controls.update(); renderer.render(scene, camera); };
 
   // models are Draco-compressed; the decoder files live in /draco/
   const draco = new DRACOLoader().setDecoderPath('/draco/');
@@ -65,10 +55,6 @@ export async function mountViewer(host, url, onState, view = {}) {
       if (dead) return;
       model = gltf.scene;
       scene.add(model);
-      if (gltf.animations && gltf.animations.length) {
-        mixer = new AnimationMixer(model);
-        gltf.animations.forEach((c) => { clips[c.name] = mixer.clipAction(c).setLoop(LoopRepeat, Infinity); });
-      }
       model.traverse((o) => {
         if (o.isMesh) {
           meshes.push({ mesh: o, orig: o.material });
@@ -100,21 +86,12 @@ export async function mountViewer(host, url, onState, view = {}) {
       grid.material.transparent = true;
       grid.material.opacity = 0.55;
       scene.add(grid);
-      if (mixer) play(view.clip && clips[view.clip] ? view.clip : clips.idle ? 'idle' : Object.keys(clips)[0]);
       onState('ready');
       loop();
     },
     undefined,
     () => { if (!dead) onState('error'); },
   );
-
-  function play(name) {
-    const next = clips[name];
-    if (!next || next === currentAction) return;
-    next.reset().play();
-    if (currentAction) currentAction.crossFadeTo(next, 0.35, false);
-    currentAction = next;
-  }
 
   function applyStage() {
     // 1 wireframe (solid dark fill + full wire overlay, so every part shows), 2 material preview
@@ -136,8 +113,6 @@ export async function mountViewer(host, url, onState, view = {}) {
 
   return {
     setStage(n) { stage = n; applyStage(); },
-    animations: () => { const o = ['idle', 'wave', 'think', 'idea', 'celebrate', 'walk']; const r = (n) => (o.includes(n) ? o.indexOf(n) : o.length); return Object.keys(clips).sort((x, y) => r(x) - r(y)); },
-    play,
     dispose() {
       dead = true;
       cancelAnimationFrame(raf);

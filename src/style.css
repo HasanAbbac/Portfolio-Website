@@ -446,7 +446,7 @@ h2 { font-size: clamp(1.8rem, 3.7vw, 3.05rem); font-weight: 700; line-height: 1.
   .nav { position: fixed; inset: 64px 14px auto 14px; flex-direction: column; border-radius: 16px; padding: 8px; opacity: 0; pointer-events: none; transform: translateY(-8px); transition: opacity 0.2s, transform 0.2s; background: rgba(var(--pipe-rgb), 0.96); }
   .menu-open .nav { opacity: 1; pointer-events: auto; transform: none; }
   .nav a { padding: 14px 16px; font-size: 1rem; border-radius: 10px; }
-  .pipe button span { display: none; }
+  .pipe button span { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } /* hidden for sight, still read out: the button's name stays "01 Vertices" */
   .pipe { bottom: 10px; padding-bottom: 6px; }
   .sec { align-items: flex-start; padding-top: calc(64px + 40svh); padding-bottom: 104px; }
   .sec-home { align-items: flex-end; padding-top: calc(64px + 36svh); padding-bottom: 118px; }
@@ -554,9 +554,7 @@ h2 { font-size: clamp(1.8rem, 3.7vw, 3.05rem); font-weight: 700; line-height: 1.
 .pm-sl.pm-stage { flex: 2 1 200px; }
 .pm-sl b { color: var(--accent-text); font-weight: 500; }
 .pm-sl input[type='range'] { width: 100%; accent-color: var(--orange); }
-.pm-seg { display: flex; flex-wrap: wrap; gap: 8px; }
-.pm-sl.pm-anim { flex: 3 1 100%; }
-.pm-sl[hidden] { display: none; }
+.pm-seg { display: flex; gap: 8px; }
 .pm-seg .btn { flex: 1; height: 34px; padding: 0 14px; font-size: 0.78rem; }
 .pm-hint { z-index: 2; position: absolute; top: 10px; inset-inline-start: 12px; font-size: 0.75rem; color: var(--faint); pointer-events: none; }
 .pm-ctrl .btn[aria-pressed='true'] { background: var(--orange); color: var(--orange-ink); }

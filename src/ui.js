@@ -339,7 +339,8 @@ export function initUI(content, _stats) {
     });
     if (bad) { form.elements[bad].focus(); setStatus(t('err.fix'), 'error'); return; }
     data.company = form.elements.company.value;
-    data.elapsed = startedAt ? Date.now() - startedAt : 0;
+    // if no focus event was seen (autofill, assistive tech), the time since the page opened is a safe stand-in
+    data.elapsed = startedAt ? Date.now() - startedAt : Math.round(performance.now());
     sendBtn.disabled = true;
     setStatus(t('form.sending'), 'busy');
     bar.style.transition = 'width 2.5s ease-out';
@@ -351,7 +352,7 @@ export function initUI(content, _stats) {
       if (res.ok && body.ok === true) { // only a real {ok:true} from the server counts as sent, never an empty or odd 200
         bar.style.transition = 'width .35s ease';
         bar.style.width = '100%';
-        setStatus(t('form.ok'), 'ok');
+        setStatus(t(body.dryRun ? 'form.dry' : 'form.ok'), 'ok'); // dry-run (test) mode on the server sends nothing, and says so
         form.reset();
         Object.keys(rules).forEach((n) => showErr(n, ''));
         setTimeout(() => { bar.style.transition = 'none'; bar.style.width = '0'; }, 2600);

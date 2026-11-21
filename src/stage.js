@@ -57,7 +57,7 @@ const POINT_FRAG = /* glsl */ `
     float a = smoothstep(0.5, 0.05, d);
     vec3 col = mix(vec3(0.38, 0.6, 1.0), vec3(1.0, 0.56, 0.42), step(0.7, vRand));
     col *= mix(1.0, 0.62, uLight);
-    gl_FragColor = vec4(col, a * 0.92 * uFade);
+    gl_FragColor = vec4(col, a * 0.6 * uFade);
   }
 `;
 
@@ -167,27 +167,18 @@ export function createStage(canvas) {
   let wire = null;
   let points = null;
 
-  function mount(next) {
-    if (rig) {
-      avatar.remove(rig.root, wire, points);
-      clayMeshes.forEach((c) => c.parent && c.parent.remove(c));
-      wire.geometry.dispose();
-      points.geometry.dispose();
-      if (rig.dispose) rig.dispose();
-      else { rig.finalMeshes.forEach((m) => m.geometry.dispose()); rig.baked.forEach((g) => g.dispose()); }
-    }
-    rig = next;
-    avatar.add(rig.root);
-    Object.assign(stats, rig.stats);
+  // Size of the built-in character. The rigged avatar is scaled to this height, and the stage is laid out around it, so the
+  // numbers are fixed here and the built-in character itself is only built if the .glb cannot be loaded.
+  const FALLBACK_BOX = new THREE.Box3(new THREE.Vector3(-0.406, -0.049, -0.24), new THREE.Vector3(0.401, 2.053, 0.259));
+  const placeholder = () => ({ root: new THREE.Group(), finalMeshes: [], baked: [], box: FALLBACK_BOX.clone(), stats: { vertices: 0, triangles: 0 }, apply() {}, makeClay: () => [] });
 
-    yMin = rig.box.min.y;
-    yMax = rig.box.max.y;
-    H = yMax - yMin;
-    centerY = yMin + H / 2;
-
-    clayMeshes = rig.makeClay
-      ? rig.makeClay(clayMat)
-      : rig.finalMeshes.map((m) => {
+  // Building the layers (clay copy, wireframe, point cloud) is split into steps that hand control back to the browser in
+  // between, so the page never freezes for one long stretch while the 3D avatar is being prepared.
+  function* prepare(next) {
+    const b = { rig: next };
+    b.clay = next.makeClay
+      ? next.makeClay(clayMat)
+      : next.finalMeshes.map((m) => {
         const c = new THREE.Mesh(m.geometry, clayMat);
         c.position.copy(m.position);
         c.rotation.copy(m.rotation);
@@ -195,22 +186,24 @@ export function createStage(canvas) {
         m.parent.add(c);
         return c;
       });
-    finalMatList = [...new Set(rig.finalMeshes.map((m) => m.material))];
+    b.mats = [...new Set(next.finalMeshes.map((m) => m.material))];
     // visible where either plane keeps it: below the last sweep (render stage) or above the first one (top of the page)
-    finalMatList.forEach((m) => { m.clippingPlanes = [planes.fin, planes.rev]; m.clipIntersection = true; });
+    b.mats.forEach((m) => { m.clippingPlanes = [planes.fin, planes.rev]; m.clipIntersection = true; });
+    yield;
 
     // wireframe layer (the .glb ships a very light copy of the body for this)
-    const wirePositions = (rig.wireGeos || rig.baked).map((g) => new THREE.WireframeGeometry(g).attributes.position.array);
+    const wirePositions = (next.wireGeos || next.baked).map((g) => new THREE.WireframeGeometry(g).attributes.position.array);
     const wireArr = new Float32Array(wirePositions.reduce((n, a) => n + a.length, 0));
     let o = 0;
     wirePositions.forEach((a) => { wireArr.set(a, o); o += a.length; });
     const wireGeo = new THREE.BufferGeometry();
     wireGeo.setAttribute('position', new THREE.BufferAttribute(wireArr, 3));
-    wire = new THREE.LineSegments(wireGeo, wireMat);
-    avatar.add(wire);
+    b.wire = new THREE.LineSegments(wireGeo, wireMat);
+    yield;
 
     // point cloud layer
-    const target = sampleSurface(rig.baked, COUNT);
+    const target = sampleSurface(next.baked, COUNT);
+    yield;
     const scatter = new Float32Array(COUNT * 3);
     const rand = new Float32Array(COUNT);
     const tmp = new THREE.Vector3();
@@ -224,26 +217,69 @@ export function createStage(canvas) {
     pGeo.setAttribute('position', new THREE.BufferAttribute(target, 3));
     pGeo.setAttribute('aScatter', new THREE.BufferAttribute(scatter, 3));
     pGeo.setAttribute('aRand', new THREE.BufferAttribute(rand, 1));
-    points = new THREE.Points(pGeo, pMat);
-    points.frustumCulled = false;
-    avatar.add(points);
+    b.points = new THREE.Points(pGeo, pMat);
+    b.points.frustumCulled = false;
 
     // export bounding box
     const size = new THREE.Vector3();
-    rig.box.getSize(size);
+    next.box.getSize(size);
+    b.bboxGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(size.x * 1.35, size.y * 1.06, size.z * 1.9));
+    return b;
+  }
+
+  // The quick, all-at-once swap: everything is already built, so the scene never shows a half-finished avatar.
+  function commit(b) {
+    if (rig) {
+      avatar.remove(rig.root, wire, points);
+      clayMeshes.forEach((c) => c.parent && c.parent.remove(c));
+      wire.geometry.dispose();
+      points.geometry.dispose();
+      if (rig.dispose) rig.dispose();
+      else { rig.finalMeshes.forEach((m) => m.geometry.dispose()); rig.baked.forEach((g) => g.dispose()); }
+    }
+    rig = b.rig;
+    avatar.add(rig.root, b.wire, b.points);
+    Object.assign(stats, rig.stats);
+    yMin = rig.box.min.y;
+    yMax = rig.box.max.y;
+    H = yMax - yMin;
+    centerY = yMin + H / 2;
+    clayMeshes = b.clay;
+    finalMatList = b.mats;
+    wire = b.wire;
+    points = b.points;
     bbox.geometry.dispose();
-    bbox.geometry = new THREE.EdgesGeometry(new THREE.BoxGeometry(size.x * 1.35, size.y * 1.06, size.z * 1.9));
+    bbox.geometry = b.bboxGeo;
     rig.box.getCenter(bbox.position);
   }
-  mount(buildAvatar());
+
+  const nextTask = () => new Promise((resolve) => { if (globalThis.scheduler && scheduler.yield) scheduler.yield().then(resolve); else setTimeout(resolve, 0); });
+  function mount(next) { // synchronous (the placeholder and the built-in fallback)
+    const g = prepare(next);
+    let r;
+    while (!(r = g.next()).done);
+    commit(r.value);
+  }
+  async function mountAsync(next) { // used for the .glb: the browser stays responsive between the steps
+    const g = prepare(next);
+    let r;
+    while (!(r = g.next()).done) await nextTask();
+    commit(r.value);
+    // compile the avatar's shaders in parallel now, instead of freezing the first frame that shows it
+    if (typeof renderer.compileAsync === 'function') renderer.compileAsync(scene, camera).catch(() => {});
+  }
+  mount(placeholder());
 
   // Swap in the rigged .glb avatar. The point cloud waits (still scattered) until it is ready, up to a few seconds.
   let avatarReady = false;
   const readyTimer = setTimeout(() => { avatarReady = true; }, 6000);
   import('./avatarGlb.js')
     .then((m) => m.loadAvatarGlb(AVATAR_URL, { height: H, minY: yMin }))
-    .then((glb) => { mount(glb); })
-    .catch((err) => console.warn('Rigged avatar could not load, keeping the built-in character.', err))
+    .then((glb) => mountAsync(glb))
+    .catch((err) => {
+      console.warn('Rigged avatar could not load, using the built-in character.', err);
+      mount(buildAvatar());
+    })
     .finally(() => { clearTimeout(readyTimer); avatarReady = true; });
 
   // ---- floor, shadow, pedestal, sweep ring, background primitives
@@ -408,18 +444,18 @@ export function createStage(canvas) {
 
     // reveal: the intro dots gather into the avatar, then the finished textured model takes their place for good.
     // Scrolling then sweeps that model straight into the wireframe scan (the dots never come back).
-    const rvTarget = avatarReady && form >= 0.999 ? 1 : 0;
+    const rvTarget = avatarReady && form >= 0.55 ? 1 : 0; // starts while the dots are still gathering, so there is no glowing silhouette
     reveal += (rvTarget - reveal) * (1 - Math.exp(-dt * (rvTarget ? 2.2 : 5)));
     const rv = reveal < 0.003 ? 0 : reveal > 0.997 ? 1 : reveal;
     planes.rev.constant = rv > 0 ? -b0 : -1000;
-    pMat.uniforms.uFade.value = 1 - rv;
+    pMat.uniforms.uFade.value = Math.min(1 - rv, 1 - ramp(form, 0.5, 0.95)); // the dots thin out as they land
     finalMatList.forEach((m) => {
       const t = rv > 0 && rv < 1;
       if (m.transparent !== t) { m.transparent = t; m.needsUpdate = true; } // the shader is rebuilt when this flips
       m.opacity = rv > 0 ? rv : 1;
     });
 
-    points.visible = rv < 1; // intro only
+    points.visible = rv < 1 && pMat.uniforms.uFade.value > 0.004; // intro only
     wire.visible = s0 > 0.001 && s1 < 0.999;
     clayMeshes.forEach((m) => (m.visible = s1 > 0.001 && s2 < 0.999));
     rig.finalMeshes.forEach((m) => (m.visible = s2 > 0.001 || rv > 0));

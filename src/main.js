@@ -31,9 +31,14 @@ setLang(initialLang(), false);
 sel.value = document.documentElement.lang;
 const ui = initUI(CONTENT);
 const theme = initTheme(() => stage);
-const promo = initPromo();
-initPalette({ content: CONTENT, ui, theme, promo });
-initChat({ ui });
+// The promo popup, the quick menu (K) and the AI chat are not needed for the first paint, so they are set up when the browser is idle
+// (at most about a second later). This keeps the first load responsive.
+const whenIdle = (fn) => (window.requestIdleCallback ? window.requestIdleCallback(fn, { timeout: 1200 }) : setTimeout(fn, 300));
+whenIdle(() => {
+  const promo = initPromo();
+  initPalette({ content: CONTENT, ui, theme, promo });
+  initChat({ ui });
+});
 sel.addEventListener('change', () => setLang(sel.value));
 window.addEventListener('langchange', (e) => { sel.value = e.detail; ui.measure(); });
 // layout can shift when text length changes
