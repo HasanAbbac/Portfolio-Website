@@ -26,7 +26,9 @@ function layoutAt(table, idx) {
   return { x: lerp(table.x[i], table.x[i + 1], t) * flip, y: lerp(table.y[i], table.y[i + 1], t), s: lerp(table.s[i], table.s[i + 1], t) };
 }
 
-const AVATAR_URL = '/models/avatar-hero.glb';
+// Browsers keep models for a day. The ?v= number is part of the cache key, so raise it whenever avatar-hero.glb is replaced:
+// returning visitors then download the new file at once instead of seeing the old avatar until their cache expires.
+const AVATAR_URL = '/models/avatar-hero.glb?v=3';
 
 const POINT_VERT = /* glsl */ `
   uniform float uTime; uniform float uForm; uniform float uSize; uniform float uScale;
