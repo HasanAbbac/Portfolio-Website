@@ -1,7 +1,7 @@
 # Hasan Abbasi: interactive 3D portfolio
 
 A scroll-driven 3D portfolio built around one idea: **scrolling walks you through a Blender render pipeline.**
-A rigged 3D avatar (a photo-scanned character with a 21-bone skeleton, loaded from `public/models/avatar-hero.glb`) is built from scattered points when the page opens, then swept into a wireframe, a clay render and the finished materials as you scroll (Vertices, Wireframe, Material, Render, Animation, Export). Each stage is a section of the site. If the model cannot load, a built-in low-poly character is used instead.
+A rigged 3D avatar (a stylized character with a 21-bone skeleton, loaded from `public/models/avatar-hero.glb`) is built from scattered points when the page opens, then swept into a wireframe, a clay render and the finished materials as you scroll (Vertices, Wireframe, Material, Render, Animation, Export). Each stage is a section of the site. If the model cannot load, a built-in low-poly character is used instead.
 
 **Sections:** Home, About, Skills (node graph), Projects (gallery with 3D viewer and playable games), Education and experience (dope-sheet timeline you can scrub), Contact (export dialog).
 **Also:** an AI assistant that answers questions about Hasan from his own documents (RAG) in all seven site languages, a draggable avatar (drag it sideways to turn it; it eases back to its resting pose), project search with category, tool and sort filters, dark and light themes, 7 languages (English, Arabic, Chinese, French, Spanish, Turkish, Urdu), a quick menu (press K), keyboard and screen-reader support.

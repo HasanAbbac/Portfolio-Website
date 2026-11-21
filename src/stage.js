@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { buildAvatar, applyPose, POSES, mixPose, sampleSurface } from './avatar.js';
+import { buildAvatar, applyPose, POSES, sampleSurface } from './avatar.js';
 
 const ramp = (x, a, b) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
@@ -356,18 +356,14 @@ export function createStage(canvas) {
 
   const bound = (s, scale) => avatar.position.y + (yMin - MARGIN + s * (H + MARGIN * 2) - 0) * scale - (0);
 
-  // ---- click the avatar: it reacts with a short pose
+  // ---- picking: finds out whether the pointer is over the avatar (used for hover and for dragging it around)
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
-  const POKES = ['wave', 'celebrate', 'idea', 'think'];
-  let pokeN = 0;
-  const pk = { name: null, t: 0 };
   function pick(cx, cy) {
     ndc.set((cx / window.innerWidth) * 2 - 1, -((cy / window.innerHeight) * 2 - 1));
     ray.setFromCamera(ndc, camera);
     return ray.intersectObjects(rig.pickMeshes || rig.finalMeshes, false).length > 0;
   }
-  function poke() { pk.name = POKES[pokeN++ % POKES.length]; pk.t = 0; }
 
   // ---- orbit: drag the avatar to turn it around its vertical (Y) axis. On release it eases back to the angle it
   // would have had anyway (the same resting rotation as before), so scrolling and the mouse-follow keep working.
@@ -502,22 +498,10 @@ export function createStage(canvas) {
     floor.position.y = feetY - 0.004;
     floor.material.uniforms.uCenter.value.set(avatar.position.x, 0, 0);
 
-    // pose
-    const idle = { ...POSES.idle };
-    if (!reduce) {
-      idle.rootY += Math.sin(time * 1.6) * 0.006;
-      idle.spX += Math.sin(time * 1.6) * 0.012;
-      idle.hdY += Math.sin(time * 0.7) * 0.08;
-    }
-    let pose = idle;
-    const tlw = 0; // the Education and Experience timeline no longer makes the avatar act
-    let pw = 0;
-    if (pk.name) {
-      pk.t += dt;
-      pw = Math.max(0, Math.min(1, pk.t / 0.25, (2.6 - pk.t) / 0.4));
-      if (pk.t > 2.6) pk.name = null;
-      else pose = mixPose(pose, POSES[pk.name], pw);
-    }
+    // pose: the avatar stands still (no waving, no reactions, no idle sway); it only turns when dragged or with the mouse
+    const pose = POSES.idle;
+    const tlw = 0;
+    const pw = 0;
     if (rig.apply) rig.apply(pose, time);
     else applyPose(rig, pose, time);
 
@@ -580,5 +564,5 @@ export function createStage(canvas) {
     });
   }
 
-  return { update, resize, drawGizmo, stats, renderer, pick, poke, setTheme, orbitStart, orbitMove, orbitEnd };
+  return { update, resize, drawGizmo, stats, renderer, pick, setTheme, orbitStart, orbitMove, orbitEnd };
 }

@@ -51,14 +51,9 @@ window.addEventListener('pointermove', (e) => {
 }, { passive: true });
 window.addEventListener('resize', () => stage && stage.resize());
 
-// Click the avatar: it waves or changes pose. Ignore clicks that land on UI.
+// Pointer handling for dragging the avatar. Ignore presses that land on UI.
 const UI_SEL = 'a,button,input,textarea,select,label,dialog,.props,.node,.card,.export,.dope,.graph,.pipe,.top,.skills-head,.proj-head,.exp-head,.col,.queue,.pf';
 let dragged = false; // true while a drag on the avatar is happening, so letting go does not also count as a click
-window.addEventListener('click', (e) => {
-  if (dragged) { dragged = false; return; }
-  if (!stage || e.target.closest(UI_SEL)) return;
-  if (stage.pick(e.clientX, e.clientY)) stage.poke();
-});
 
 // Drag the avatar sideways to turn it around its vertical axis; it eases back to its default rotation when released.
 let orbiting = null; // pointer id of the active drag

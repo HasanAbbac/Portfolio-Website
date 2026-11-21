@@ -49,9 +49,10 @@ function wrap(gltf, height, minY) {
 
   body.frustumCulled = false;
   const mat = body.material;
-  mat.roughness = 0.72;
-  mat.metalness = 0;
-  [mat.map, mat.normalMap].forEach((t) => { if (t) t.anisotropy = 8; });
+  // A model that ships its own roughness map keeps it (glossy glasses and watch, matte cloth). Metalness is switched off because the
+  // stage has no environment map, and a metal surface without one renders black.
+  if (mat.roughnessMap) { mat.metalnessMap = null; mat.metalness = 0; } else { mat.roughness = 0.72; mat.metalness = 0; }
+  [mat.map, mat.normalMap, mat.roughnessMap].forEach((t) => { if (t) t.anisotropy = 8; });
 
   // rest-pose copies for the point cloud, wireframe, bounding box and stats
   const bake = (m) => { const g = m.geometry.clone(); g.applyMatrix4(m.matrixWorld); return g; };
@@ -117,7 +118,7 @@ function wrap(gltf, height, minY) {
     root.parent && root.parent.remove(root);
     [bakedBody, wireGeo, body.geometry].forEach((g) => g.dispose());
     if (wireMesh) { wireMesh.geometry.dispose(); wireMesh.material.dispose(); }
-    [mat.map, mat.normalMap].forEach((t) => t && t.dispose());
+    [mat.map, mat.normalMap, mat.roughnessMap].forEach((t) => t && t.dispose());
     mat.dispose();
   }
 
