@@ -7,7 +7,9 @@ export function initPromo() {
   if (!dlg || !video) return { open() {} };
   const err = document.getElementById('promoErr');
   let opener = null;
-  const SRC = '/promo/Hasan_Abbasi_Promo.mp4';
+  // The file name carries a version on purpose: browsers and the CDN keep videos for a day, so a replaced video must get a new name
+  // (Hasan_Abbasi_Promo-v4.mp4 ...) or visitors would keep seeing the old one.
+  const SRC = '/promo/Hasan_Abbasi_Promo-v3.mp4';
 
   function open(from) {
     opener = from || document.activeElement;
