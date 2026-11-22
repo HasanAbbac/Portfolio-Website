@@ -18,7 +18,6 @@ let curMode = '';
 function modeOf(t) {
   if (!t || !t.closest) return '';
   if (t.closest('#promoBtn, .btn-play, video')) return 'Play';
-  if (t.closest('.card')) return 'Open';
   if (t.closest('input,textarea')) return 'text';
   if (t.closest('a,button,select,label,[role=button]')) return 'link';
   return '';
@@ -28,7 +27,7 @@ function drawCursor() {
   blob.style.opacity = on ? '1' : '0';
   if (!on) return;
   const m = modeOf(mouse.target);
-  if (m !== curMode) { curMode = m; blob.dataset.m = m; blobLabel.textContent = m === 'Play' || m === 'Open' ? m : ''; }
+  if (m !== curMode) { curMode = m; blob.dataset.m = m; blobLabel.textContent = m === 'Play' ? m : ''; }
   blob.classList.toggle('down', mouse.down);
 }
 

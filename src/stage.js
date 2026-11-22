@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { buildAvatar, applyPose, POSES, sampleSurface } from './avatar.js';
 
 const ramp = (x, a, b) => {
@@ -13,6 +14,11 @@ const LAYOUT = {
   y: [0, 0, 0, 0, 0.47, 0],
   s: [1.0, 1.0, 0.9, 0.86, 0.7, 1.0],
 };
+const DEFAULT_X = [...LAYOUT.x];
+// Skills (2) and Projects (3): main.js measures the free space between the left menu and the text column and sets the avatar's x so it sits exactly in the middle.
+function setLayoutX(map) {
+  LAYOUT.x.forEach((_, i) => { LAYOUT.x[i] = map && map[i] != null ? map[i] : DEFAULT_X[i]; });
+}
 const LAYOUT_MID = {
   x: [0.66, 0.66, 0.66, 0.66, 0.6, 0.66],
   y: [0, 0, 0, 0, 0.47, 0],
@@ -28,7 +34,7 @@ function layoutAt(table, idx) {
 
 // Browsers keep models for a day. The ?v= number is part of the cache key, so raise it whenever avatar-hero.glb is replaced:
 // returning visitors then download the new file at once instead of seeing the old avatar until their cache expires.
-const AVATAR_URL = '/models/avatar-hero.glb?v=4';
+const AVATAR_URL = '/models/avatar-hero.glb?v=6';
 
 const POINT_VERT = /* glsl */ `
   uniform float uTime; uniform float uForm; uniform float uSize; uniform float uScale;
@@ -78,19 +84,19 @@ const FLOOR_FRAG = /* glsl */ `
   float grid(vec2 p, float s) {
     vec2 q = p / s;
     vec2 g = abs(fract(q - 0.5) - 0.5) / fwidth(q);
-    return 1.0 - min(min(g.x, g.y), 1.0);
+    return 1.0 - min(min(g.x, g.y) / 1.35, 1.0); // slightly thicker lines than 1 px so the grid reads clearly
   }
   float line(float v) { return 1.0 - min(abs(v) / fwidth(v), 1.0); }
   void main() {
     vec2 p = vW.xz;
-    float fade = smoothstep(16.0, 1.5, length(p - uCenter.xz));
-    float a = (grid(p, 0.5) * 0.12 + grid(p, 2.5) * 0.2) * fade;
+    float fade = smoothstep(40.0, 9.0, length(p - uCenter.xz)); // stays at full strength across the whole visible floor and only fades far out
+    float a = (grid(p, 0.5) * 0.24 + grid(p, 2.5) * 0.42) * fade;
     vec3 col = uInk;
     float ax = line(p.y) * fade;
     float az = line(p.x) * fade;
     col = mix(col, vec3(0.92, 0.25, 0.3), ax);
     col = mix(col, vec3(0.5, 0.78, 0.1), az);
-    a = max(a, max(ax, az) * 0.55);
+    a = max(a, max(ax, az) * 0.8);
     gl_FragColor = vec4(col, a * uAlpha);
   }
 `;
@@ -115,6 +121,10 @@ export function createStage(canvas) {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, narrowScreen ? 1.5 : 2));
 
   const scene = new THREE.Scene();
+  // a soft studio environment, used only for reflections on the finished avatar (leather, glasses, hair sheen)
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const envTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+  pmrem.dispose();
   const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
   const CAM_DIST = 7.4;
 
@@ -189,6 +199,7 @@ export function createStage(canvas) {
         return c;
       });
     b.mats = [...new Set(next.finalMeshes.map((m) => m.material))];
+    b.mats.forEach((m) => { m.envMap = envTex; m.envMapIntensity = 0.55; m.needsUpdate = true; });
     // visible where either plane keeps it: below the last sweep (render stage) or above the first one (top of the page)
     b.mats.forEach((m) => { m.clippingPlanes = [planes.fin, planes.rev]; m.clipIntersection = true; });
     yield;
@@ -286,7 +297,7 @@ export function createStage(canvas) {
 
   // ---- floor, shadow, pedestal, sweep ring, background primitives
   const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(60, 60),
+    new THREE.PlaneGeometry(140, 140),
     new THREE.ShaderMaterial({
       vertexShader: FLOOR_VERT, fragmentShader: FLOOR_FRAG, transparent: true, depthWrite: false,
       uniforms: { uCenter: { value: new THREE.Vector3() }, uAlpha: { value: 1 }, uInk: { value: new THREE.Color(0.56, 0.7, 0.75) } },
@@ -303,6 +314,14 @@ export function createStage(canvas) {
   shadow.rotation.x = -Math.PI / 2;
   shadow.renderOrder = -1;
   scene.add(shadow);
+
+  const contact = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.2, 1.2),
+    new THREE.MeshBasicMaterial({ map: radialTexture(), transparent: true, depthWrite: false, opacity: 0 }),
+  );
+  contact.rotation.x = -Math.PI / 2;
+  contact.renderOrder = -1;
+  scene.add(contact);
 
   const pedestal = new THREE.Group();
   const pedMat = new THREE.MeshStandardMaterial({ color: 0x21424f, roughness: 0.5, metalness: 0.35 });
@@ -501,7 +520,10 @@ export function createStage(canvas) {
     pedMat.emissive.copy(pedMat.color); pedMat.emissiveIntensity = (1 - lkv) * 0.32;
     shadow.position.set(avatar.position.x, feetY + 0.004, 0);
     shadow.scale.setScalar(ls);
-    shadow.material.opacity = Math.max(ramp(I, 1.5, 2.3) * 0.55, rv * 0.5 * (1 - ramp(I, 0.75, 0.9))) * (1 - pk * 0.6);
+    shadow.material.opacity = Math.max(ramp(I, 1.5, 2.3) * 0.55, rv * 0.5 * (1 - ramp(I, 0.75, 0.9))) * (1 - pk * 0.25);
+    contact.position.set(avatar.position.x, feetY + 0.007, 0);
+    contact.scale.setScalar(ls);
+    contact.material.opacity = Math.min(0.75, shadow.material.opacity * 1.25) * pk;
     floor.position.y = feetY - 0.004;
     floor.material.uniforms.uCenter.value.set(avatar.position.x, 0, 0);
 
@@ -571,5 +593,5 @@ export function createStage(canvas) {
     });
   }
 
-  return { update, resize, drawGizmo, stats, renderer, pick, setTheme, orbitStart, orbitMove, orbitEnd };
+  return { update, resize, drawGizmo, stats, renderer, pick, setTheme, orbitStart, orbitMove, orbitEnd, setLayoutX };
 }

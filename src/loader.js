@@ -8,14 +8,7 @@ const col = (n) => getComputedStyle(root).getPropertyValue(n).trim();
 
 function buildBg() {
   const c = document.createElement('canvas'); c.width = W * Q; c.height = H * Q; const x = c.getContext('2d'); x.scale(Q, Q);
-  const sky = x.createLinearGradient(0, 0, 0, H * 0.62); sky.addColorStop(0, '#173343'); sky.addColorStop(1, '#0f1d26');
-  x.fillStyle = sky; x.fillRect(0, 0, W, H);
-  const hz = H * 0.62; x.fillStyle = '#0c1a23'; x.fillRect(0, hz, W, H - hz);
-  x.lineWidth = 1; x.strokeStyle = '#2d5766';
-  for (let i = -12; i <= 12; i++) { x.beginPath(); x.moveTo(W / 2 + i * 14, hz); x.lineTo(W / 2 + i * 120, H); x.stroke(); }
-  for (let k = 1; k < 8; k++) { const y = hz + (H - hz) * Math.pow(k / 8, 1.8); x.beginPath(); x.moveTo(0, y); x.lineTo(W, y); x.stroke(); }
-  x.strokeStyle = '#b3414d'; x.beginPath(); x.moveTo(0, hz + (H - hz) * 0.36); x.lineTo(W, hz + (H - hz) * 0.36); x.stroke();
-  x.strokeStyle = '#6fae48'; x.beginPath(); x.moveTo(W / 2, hz); x.lineTo(W / 2 - 14, H); x.stroke();
+  paintSiteBackdrop(x, W, H);
   // wire cube
   x.strokeStyle = '#6f95a3'; x.globalAlpha = 0.5; x.strokeRect(70, 60, 56, 56); x.strokeRect(82, 48, 56, 56); x.beginPath(); x.moveTo(70, 60); x.lineTo(82, 48); x.moveTo(126, 60); x.lineTo(138, 48); x.moveTo(70, 116); x.lineTo(82, 104); x.moveTo(126, 116); x.lineTo(138, 104); x.stroke(); x.globalAlpha = 1;
   x.fillStyle = '#ff9f7e'; x.globalAlpha = 0.9; x.font = '800 54px Unbounded, sans-serif'; x.fillText('Hasan', 40, H - 90); x.fillStyle = '#fff4ea'; x.fillText('Abbasi', 40, H - 36); x.globalAlpha = 1;
@@ -31,37 +24,41 @@ function drawSilhouette(x) {
   x.beginPath(); x.moveTo(ax - 44, base - 150); x.quadraticCurveTo(ax - 52, base - 40, ax - 36, base); x.lineTo(ax + 36, base); x.quadraticCurveTo(ax + 52, base - 40, ax + 44, base - 150); x.quadraticCurveTo(ax, base - 172, ax - 44, base - 150); x.closePath(); x.fill(); x.stroke();
 }
 
-// the real avatar, rendered live with Three.js into its own transparent canvas (same file the site uses, so the browser reuses the download)
+// The very same avatar the site shows: built by the same loader (avatarGlb.js), in the same idle pose, with the same lights
+// reflections and platform as the finished render on the page. Rendered live into its own transparent canvas.
 async function loadAvatar() {
   const THREE = await import('three');
-  const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
-  const { DRACOLoader } = await import('three/examples/jsm/loaders/DRACOLoader.js');
   const { RoomEnvironment } = await import('three/examples/jsm/environments/RoomEnvironment.js');
-  const draco = new DRACOLoader().setDecoderPath('/draco/');
-  const gltf = await new GLTFLoader().setDRACOLoader(draco).loadAsync('/models/avatar-hero.glb?v=4'); draco.dispose(); // keep the ?v= number in step with AVATAR_URL in stage.js
-  const model = gltf.scene;
-  model.traverse((o) => {
-    if (o.name === 'Avatar_Wire') o.visible = false;
-    if (o.isSkinnedMesh) { o.frustumCulled = false; const m = o.material; if (m.roughnessMap) { m.metalnessMap = null; m.metalness = 0; } else { m.roughness = 0.72; m.metalness = 0; } }
-  });
-  const box = new THREE.Box3().setFromObject(model), size = box.getSize(new THREE.Vector3()), ctr = box.getCenter(new THREE.Vector3());
-  const scene = new THREE.Scene(), pivot = new THREE.Group(); model.position.sub(ctr); pivot.add(model); scene.add(pivot);
-  scene.add(new THREE.HemisphereLight(0xcfe6f0, 0x0f1d26, 0.9));
-  const key = new THREE.DirectionalLight(0xfff4ea, 2.6); key.position.set(2.5, 3, 4); scene.add(key);
-  const rim = new THREE.DirectionalLight(0xff9f7e, 2.6); rim.position.set(-3, 2, -2.5); scene.add(rim);
-  const fill = new THREE.DirectionalLight(0x8ab8ff, 0.8); fill.position.set(-3, 0.5, 3); scene.add(fill);
-  const cam = new THREE.PerspectiveCamera(32, W / H, 0.1, 100);
-  cam.position.set(0, 0, (size.y * 1.1) / 2 / Math.tan((16 * Math.PI) / 180));
+  const { loadAvatarGlb } = await import('./avatarGlb.js');
+  const { POSES } = await import('./avatar.js');
+  // same size and floor level as the 3D stage uses (see stage.js), so the figure matches the page exactly
+  const rig = await loadAvatarGlb('/models/avatar-hero.glb?v=6', { height: 2.102, minY: -0.049 }); // keep the ?v= number in step with AVATAR_URL in stage.js
   const r = new THREE.WebGLRenderer({ alpha: true, antialias: true, preserveDrawingBuffer: true });
-  r.setPixelRatio(1); r.setSize(W * Q, H * Q, false);
-  r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.1;
-  const pm = new THREE.PMREMGenerator(r); scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.45; pm.dispose();
-  const aniso = r.capabilities.getMaxAnisotropy();
-  model.traverse((o) => { if (o.isSkinnedMesh && o.material) [o.material.map, o.material.normalMap, o.material.roughnessMap].forEach((t) => { if (t) { t.anisotropy = aniso; t.needsUpdate = true; } }); });
+  r.setPixelRatio(1); r.setSize(W * Q, H * Q, false); r.setClearColor(0x000000, 0);
+  const pm = new THREE.PMREMGenerator(r); const envTex = pm.fromScene(new RoomEnvironment(), 0.04).texture; pm.dispose();
+  rig.finalMeshes.forEach((m) => { m.material.envMap = envTex; m.material.envMapIntensity = 0.55; m.material.needsUpdate = true; });
+  rig.apply(POSES.idle, 0);
+  const scene = new THREE.Scene(), pivot = new THREE.Group(); pivot.add(rig.root); scene.add(pivot);
+  // the finished-render lights from the stage (hemisphere, key, blue rim, coral fill)
+  const hemi = new THREE.HemisphereLight(0xcfe6f0, 0x0f1d26, 0.42);
+  const key = new THREE.DirectionalLight(0xfff0e0, 2.7); key.position.set(3, 5, 4);
+  const rim = new THREE.DirectionalLight(0x8ab8ff, 2.2); rim.position.set(-4, 3, -4);
+  const fill = new THREE.DirectionalLight(0xff9f7e, 0.9); fill.position.set(-3, -1, 3);
+  scene.add(hemi, key, rim, fill);
+  // the platform under the feet, same shape and colours as the site's
+  const feetY = rig.box.min.y, top = rig.box.max.y;
+  const ped = new THREE.Group();
+  const pedBody = new THREE.Mesh(new THREE.CylinderGeometry(0.88, 0.94, 0.1, 56), new THREE.MeshStandardMaterial({ color: 0x21424f, roughness: 0.5, metalness: 0.35 })); pedBody.position.y = -0.05;
+  const pedRing = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.012, 8, 96), new THREE.MeshBasicMaterial({ color: 0xff9f7e, transparent: true, opacity: 0.95 })); pedRing.rotation.x = Math.PI / 2;
+  ped.add(pedBody, pedRing); ped.position.y = feetY; scene.add(ped);
+  // framed so the whole figure AND its platform fit inside the frame, with the figure about 70% of the frame height
+  const cam = new THREE.PerspectiveCamera(32, W / H, 0.1, 100);
+  const midY = (feetY - 0.12 + top) / 2, span = top - feetY + 0.12;
+  cam.position.set(0, midY + 0.45, (span / 2) / Math.tan((16 * Math.PI) / 180) * 1.27); cam.lookAt(0, midY, 0);
   return {
     canvas: r.domElement,
-    update(t) { pivot.rotation.y = Math.sin(t * 0.9) * 0.55; r.render(scene, cam); },
-    dispose() { r.dispose(); r.forceContextLoss(); },
+    update(t) { pivot.rotation.y = Math.sin(t * 0.9) * 0.45; r.render(scene, cam); },
+    dispose() { rig.dispose && rig.dispose(); r.dispose(); r.forceContextLoss(); },
   };
 }
 
@@ -71,6 +68,39 @@ const ORDER = Array.from({ length: COLS * ROWS }, (_, i) => i).sort((a, b) => {
   return da - db;
 });
 const fmt = (s) => { const m = Math.floor(s / 60), r = s - m * 60; return String(m).padStart(2, '0') + ':' + r.toFixed(1).padStart(4, '0'); };
+
+// The website's own background, painted into a w x h area, using the page's exact values:
+//  - the .backdrop of the page (base colour, the coral and blue glows, the vignette), and
+//  - the 3D floor grid from stage.js: the same Blender-style grid (0.5 and 2.5 unit cells, the same alphas and fade), seen from the same
+//    camera as the home section (fov 32, 7.4 units back, 0.55 up, floor under the avatar's feet), with the red X axis and the green Y axis.
+function paintSiteBackdrop(c, w, h) {
+  const ell = (cx, cy, rx, ry, stops) => { // an elliptical radial gradient, like CSS radial-gradient(rx ry at cx cy, ...)
+    c.save(); c.translate(cx, cy); c.scale(rx, ry);
+    const g = c.createRadialGradient(0, 0, 0, 0, 0, 1); stops.forEach(([o, colr]) => g.addColorStop(o, colr));
+    c.fillStyle = g; c.fillRect(-cx / rx, -cy / ry, w / rx, h / ry); c.restore();
+  };
+  c.fillStyle = col('--bg') || '#0f1d26'; c.fillRect(0, 0, w, h);
+  ell(w * 0.78, h * 0.38, w * 0.6, w * 0.45, [[0, 'rgba(255,159,126,0.09)'], [0.62, 'rgba(255,159,126,0)']]);
+  ell(w * 0.1, h, w * 0.7, w * 0.6, [[0, 'rgba(138,184,255,0.07)'], [0.6, 'rgba(138,184,255,0)']]);
+  const vig = (col('--vig-rgb') || '5, 14, 20');
+  ell(w * 0.5, h * 0.4, w * 1.2, h * 0.9, [[0, `rgba(${vig},0)`], [0.55, `rgba(${vig},0)`], [1, `rgba(${vig},0.62)`]]);
+
+  // the floor: project world-space grid lines through the home-section camera
+  const ink = col('--stage-ink') || '#b4d2de', tanH = Math.tan((16 * Math.PI) / 180), asp = w / h;
+  const CY = 0.55, CZ = 7.4, fl = Math.hypot(CY, CZ), fy = -CY / fl, fz = -CZ / fl, uy = -fz, uz = fy; // camera at (0, .55, 7.4) looking at the origin
+  const FLOOR = -1.055, FADE_X = 2.07;                                                                  // the floor level under the avatar, and where the grid fade is centred
+  const proj = (x, z) => { const vy = FLOOR - CY, vz = z - CZ, zc = vy * fy + vz * fz; if (zc < 0.05) return null; return [((x / zc) / (tanH * asp) + 1) / 2 * w, (1 - ((vy * uy + vz * uz) / zc) / tanH) / 2 * h]; };
+  const fade = (x, z) => { const t = Math.min(1, Math.max(0, (Math.hypot(x - FADE_X, z) - 40) / (9 - 40))); return t * t * (3 - 2 * t); }; // smoothstep(40, 9, distance), as in the shader
+  const seg = (x0, z0, x1, z1, alpha) => { const a = proj(x0, z0), b = proj(x1, z1); if (!a || !b) return; c.globalAlpha = alpha; c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.stroke(); };
+  const isMajor = (v) => Math.abs(v / 2.5 - Math.round(v / 2.5)) < 1e-6;
+  const R = 40;
+  c.strokeStyle = ink; c.lineWidth = 1.1;
+  for (let k = -R * 2; k <= 14; k++) { const z = k * 0.5, al = 0.24 + (isMajor(z) ? 0.42 : 0); for (let x = -R; x < R; x++) { const f = fade(x + 0.5, z); if (f > 0.01) seg(x, z, x + 1, z, al * f); } }
+  for (let k = -R * 2; k <= R * 2; k++) { const x = k * 0.5, al = 0.24 + (isMajor(x) ? 0.42 : 0); for (let z = -R; z < 7; z++) { const f = fade(x, z + 0.5); if (f > 0.01) seg(x, z, x, z + 1, al * f); } }
+  c.lineWidth = 1.2; c.strokeStyle = 'rgb(235,64,77)'; for (let x = -R; x < R; x++) { const f = fade(x + 0.5, 0); if (f > 0.01) seg(x, 0, x + 1, 0, 0.8 * f); }
+  c.strokeStyle = 'rgb(128,199,26)'; for (let z = -R; z < 7; z++) { const f = fade(0, z + 0.5); if (f > 0.01) seg(0, z, 0, z + 1, 0.8 * f); }
+  c.globalAlpha = 1;
+}
 
 let running = false;
 function show() {
@@ -84,7 +114,7 @@ function show() {
     <ul class="ll-log" aria-hidden="true"></ul>
     <div class="ll-meta"><span class="ll-m">Frame 1 &middot; Cycles</span></div></div>`;
   document.body.appendChild(el);
-  const cv = el.querySelector('canvas'), g = cv.getContext('2d'), bar = el.querySelector('.ll-bar i'), sTxt = el.querySelector('.ll-s'), tTxt = el.querySelector('.ll-t'), meta = el.querySelector('.ll-m'), logEl = el.querySelector('.ll-log');
+  const cv = el.querySelector('.ll-cv'), g = cv.getContext('2d'), bar = el.querySelector('.ll-bar i'), sTxt = el.querySelector('.ll-s'), tTxt = el.querySelector('.ll-t'), meta = el.querySelector('.ll-m'), logEl = el.querySelector('.ll-log');
   const bgImg = buildBg(), scene = document.createElement('canvas'), t0 = performance.now(); scene.width = W * Q; scene.height = H * Q; const sx = scene.getContext('2d'); sx.scale(Q, Q); sx.imageSmoothingQuality = 'high'; g.scale(Q, Q); g.imageSmoothingQuality = 'high'; let av = null, gone = false, avDone = false;
   // phones skip the 3D avatar here (the stage already waits for idle time there), so the first load stays light
   const heavy = !matchMedia('(max-width: 860px)').matches;
@@ -106,13 +136,7 @@ function show() {
       const t = ORDER[i], tx = (t % COLS) * TW, ty = Math.floor(t / COLS) * TW;
       if (i < tilesDone) {
         g.drawImage(scene, tx * Q, ty * Q, TW * Q, TW * Q, tx, ty, TW, TW);
-        const age = tilesDone - i;
-        if (age < 14 && phase === 'render') { // fresh tiles are still noisy until they are "denoised"
-          const n = Math.floor(70 * (1 - age / 14));
-          for (let k = 0; k < n; k++) { g.fillStyle = Math.random() < 0.5 ? '#ff9f7e' : '#8ab8ff'; g.globalAlpha = 0.55; g.fillRect(tx + Math.random() * TW, ty + Math.random() * TW, 1.3, 1.3); }
-          g.globalAlpha = 1;
-        }
-      } else { g.strokeStyle = '#183240'; g.lineWidth = 1; g.strokeRect(tx + 0.5, ty + 0.5, TW - 1, TW - 1); }
+      } else { g.strokeStyle = '#183240'; g.lineWidth = 1; g.strokeRect(tx + 0.5, ty + 0.5, TW - 1, TW - 1); } // a solid dark block until its tile is rendered
     }
     if (tilesDone < ORDER.length && phase === 'render') { // the bucket that is being rendered right now
       const t = ORDER[tilesDone], tx = (t % COLS) * TW, ty = Math.floor(t / COLS) * TW;

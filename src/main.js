@@ -15,6 +15,16 @@ const canvas = document.getElementById('stage');
 const gizmo = document.getElementById('gizmo');
 
 let stage = null;
+// Skills and Projects: keep the avatar exactly midway between the left menu and the text column (desktop only).
+function centerAvatar() {
+  if (!stage || !stage.setLayoutX) return;
+  const W = window.innerWidth;
+  const nav = document.getElementById('nav'), sk = document.querySelector('.skills-head'), pj = document.querySelector('.proj-head');
+  if (W < 1100 || document.documentElement.classList.contains('rtl') || !nav || !sk || !pj) { stage.setLayoutX(null); return; }
+  const navRight = nav.getBoundingClientRect().right;
+  const frac = (textLeft) => ((navRight + textLeft) / 2 - W / 2) / (W / 2); // the stage measures x as a fraction of half the screen width
+  stage.setLayoutX({ 2: frac(sk.getBoundingClientRect().left), 3: frac(pj.getBoundingClientRect().left) });
+}
 // The 3D stage (Three.js) is loaded as its own chunk after the first paint, so the text and navigation appear immediately.
 async function startStage() {
   try {
@@ -22,6 +32,8 @@ async function startStage() {
     stage = createStage(canvas);
     stage.setTheme(getTheme());
     stage.resize();
+    centerAvatar();
+    setTimeout(centerAvatar, 1200); // again once fonts and images have settled the layout
   } catch (err) {
     console.warn('WebGL unavailable, showing the page without the 3D stage.', err);
     document.documentElement.classList.add('no-webgl');
@@ -53,7 +65,8 @@ window.addEventListener('pointermove', (e) => {
   mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -((e.clientY / window.innerHeight) * 2 - 1);
 }, { passive: true });
-window.addEventListener('resize', () => stage && stage.resize());
+window.addEventListener('resize', () => { if (stage) { stage.resize(); centerAvatar(); } });
+window.addEventListener('langchange', () => setTimeout(centerAvatar, 150));
 
 // Pointer handling for dragging the avatar. Ignore presses that land on UI.
 const UI_SEL = 'a,button,input,textarea,select,label,dialog,.props,.node,.card,.export,.dope,.graph,.pipe,.top,.skills-head,.proj-head,.exp-head,.col,.queue,.pf';
