@@ -1,4 +1,8 @@
 import './style.css';
+import './effects.css';
+import './effects.js';
+import './sound.js';
+import './loader.js';
 import { CONTENT } from './content.js';
 import { initUI } from './ui.js';
 import { setLang, initialLang, LANG_MENU } from './i18n.js';
