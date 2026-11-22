@@ -38,7 +38,7 @@ async function loadAvatar() {
   const { DRACOLoader } = await import('three/examples/jsm/loaders/DRACOLoader.js');
   const { RoomEnvironment } = await import('three/examples/jsm/environments/RoomEnvironment.js');
   const draco = new DRACOLoader().setDecoderPath('/draco/');
-  const gltf = await new GLTFLoader().setDRACOLoader(draco).loadAsync('/models/avatar-hero.glb?v=3'); // keep the ?v= number in step with AVATAR_URL in stage.js draco.dispose();
+  const gltf = await new GLTFLoader().setDRACOLoader(draco).loadAsync('/models/avatar-hero.glb?v=4'); draco.dispose(); // keep the ?v= number in step with AVATAR_URL in stage.js
   const model = gltf.scene;
   model.traverse((o) => {
     if (o.name === 'Avatar_Wire') o.visible = false;

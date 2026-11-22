@@ -31,10 +31,10 @@ const ROWS = [
   ['pipe.aria', 'Render pipeline progress', 'رینڈر پائپ لائن کی پیش رفت', 'Progreso del pipeline de render', 'Progression du pipeline de rendu', '渲染流程进度', 'تقدّم مسار الريندر', 'Render hattı ilerlemesi'],
   ['st.vertices', 'Vertices', 'ورٹیکس', 'Vértices', 'Sommets', '顶点', 'الرؤوس', 'Köşeler'],
   ['st.wireframe', 'Wireframe', 'وائر فریم', 'Malla', 'Fil de fer', '线框', 'الإطار السلكي', 'Tel kafes'],
-  ['st.material', 'Material', 'میٹریل', 'Material', 'Matière', '材质', 'الخامة', 'Malzeme'],
+  ['st.material', 'Solid', 'ٹھوس', 'Sólido', 'Solide', '实体', 'صلب', 'Katı'],
   ['st.matprev', 'Material Preview', 'میٹریل پریویو', 'Vista previa de materiales', 'Aperçu des matériaux', '材质预览', 'معاينة المواد', 'Malzeme önizleme'],
-  ['st.render', 'Render', 'رینڈر', 'Render', 'Rendu', '渲染', 'الريندر', 'Render'],
-  ['st.animation', 'Animation', 'اینیمیشن', 'Animación', 'Animation', '动画', 'الحركة', 'Animasyon'],
+  ['st.render', 'Material', 'میٹریل', 'Material', 'Matière', '材质', 'الخامة', 'Malzeme'],
+  ['st.animation', 'Render', 'رینڈر', 'Render', 'Rendu', '渲染', 'الريندر', 'Render'],
   ['st.export', 'Export', 'ایکسپورٹ', 'Exportar', 'Export', '导出', 'التصدير', 'Dışa aktar'],
   ['st.clay', 'Clay', 'کلے', 'Arcilla', 'Argile', '黏土', 'الطين', 'Kil'],
 
@@ -68,7 +68,7 @@ const ROWS = [
   ['v.soft', 'Problem solving, critical thinking, teamwork, open to feedback', 'مسائل حل کرنا، تنقیدی سوچ، ٹیم ورک، رائے کے لیے کھلا پن', 'Resolución de problemas, pensamiento crítico, trabajo en equipo, abierto a comentarios', 'Résolution de problèmes, esprit critique, travail d\'équipe, ouvert aux retours', '解决问题、批判性思维、团队合作、乐于接受反馈', 'حل المشكلات، التفكير النقدي، العمل الجماعي، الانفتاح على الملاحظات', 'Problem çözme, eleştirel düşünme, takım çalışması, geri bildirime açıklık'],
   ['v.int', 'Game development, animation', 'گیم ڈویلپمنٹ، اینیمیشن', 'Desarrollo de juegos, animación', 'Développement de jeux, animation', '游戏开发、动画', 'تطوير الألعاب، الرسوم المتحركة', 'Oyun geliştirme, animasyon'],
 
-  ['skills.eyebrow', '03 · Material', '03 · میٹریل', '03 · Material', '03 · Matière', '03 · 材质', '03 · الخامة', '03 · Malzeme'],
+  ['skills.eyebrow', '03 · Solid', '03 · ٹھوس', '03 · Sólido', '03 · Solide', '03 · 实体', '03 · صلب', '03 · Katı'],
   ['skills.h2', 'Skills, wired together', 'مہارتیں، آپس میں جڑی ہوئی', 'Habilidades, conectadas', 'Compétences, reliées entre elles', '技能，相互连接', 'مهارات مترابطة', 'Birbirine bağlı yetenekler'],
   ['skills.p', 'Every skill is a node, wired through its group into one material output. Hover or focus a node to follow its wire.', 'ہر مہارت ایک نوڈ ہے جو اپنے گروپ کے ذریعے ایک میٹریل آؤٹ پٹ سے جڑی ہے۔ تار کو دیکھنے کے لیے نوڈ پر ماؤس لے جائیں یا فوکس کریں۔', 'Cada habilidad es un nodo conectado, a través de su grupo, a una única salida de material. Pasa el cursor o enfoca un nodo para seguir su cable.', 'Chaque compétence est un nœud relié, via son groupe, à une seule sortie matériau. Survolez ou sélectionnez un nœud pour suivre son fil.', '每项技能都是一个节点，通过所属分组连接到同一个材质输出。悬停或聚焦节点即可查看其连线。', 'كل مهارة هي عقدة موصولة عبر مجموعتها بمخرج خامة واحد. مرّر المؤشر على عقدة أو ركّز عليها لتتبّع سلكها.', 'Her yetenek bir düğümdür ve grubu üzerinden tek bir malzeme çıkışına bağlanır. Teli takip etmek için bir düğümün üzerine gelin veya odaklanın.'],
   ['g.3D', '3D', 'تھری ڈی', '3D', '3D', '3D', 'ثلاثي الأبعاد', '3D'],
@@ -84,7 +84,7 @@ const ROWS = [
   ['out.v3', 'Games', 'گیمز', 'Juegos', 'Jeux', '游戏', 'الألعاب', 'Oyunlar'],
   ['out.aria', 'Material output: Hasan Abbasi, 3D artist', 'میٹریل آؤٹ پٹ: حسن عباسی، تھری ڈی آرٹسٹ', 'Salida de material: Hasan Abbasi, artista 3D', 'Sortie matériau : Hasan Abbasi, artiste 3D', '材质输出：Hasan Abbasi，3D 艺术家', 'مخرج الخامة: حسن عباسي، فنان ثلاثي الأبعاد', 'Malzeme çıkışı: Hasan Abbasi, 3D sanatçı'],
 
-  ['projects.eyebrow', '04 · Render', '04 · رینڈر', '04 · Render', '04 · Rendu', '04 · 渲染', '04 · الريندر', '04 · Render'],
+  ['projects.eyebrow', '04 · Material', '04 · میٹریل', '04 · Material', '04 · Matière', '04 · 材质', '04 · الخامة', '04 · Malzeme'],
   ['projects.h2', 'Render queue', 'رینڈر قطار', 'Cola de render', 'File de rendu', '渲染队列', 'قائمة الريندر', 'Render kuyruğu'],
   ['projects.lead', 'Finished renders, game builds and breakdowns will land here. The queue is being filled right now.', 'مکمل رینڈرز، گیم بلڈز اور بریک ڈاؤنز یہاں شامل ہوں گے۔ قطار ابھی بھری جا رہی ہے۔', 'Aquí aparecerán renders terminados, builds de juegos y desgloses. La cola se está llenando ahora mismo.', 'Les rendus terminés, les builds de jeux et les making-of arriveront ici. La file se remplit en ce moment.', '完成的渲染、游戏构建和制作解析将陆续放在这里。队列正在填充中。', 'ستظهر هنا الأعمال المكتملة ونسخ الألعاب وتفاصيل العمل. القائمة تُملأ الآن.', 'Tamamlanan render\'lar, oyun sürümleri ve çalışma dökümleri burada yer alacak. Kuyruk şu anda dolduruluyor.'],
   ['projects.h2b', 'Finished renders', 'مکمل رینڈرز', 'Renders terminados', 'Rendus terminés', '完成的渲染', 'أعمال مكتملة', "Tamamlanan render'lar"],
@@ -128,7 +128,7 @@ const ROWS = [
   ['pm.newtab', '{title}, opens in a new tab', '{title}، نئے ٹیب میں کھلتا ہے', '{title}, se abre en una pestaña nueva', "{title}, s'ouvre dans un nouvel onglet", '{title}，在新标签页打开', '{title}، يفتح في علامة تبويب جديدة', '{title}, yeni sekmede açılır'],
   ['pm.canvas', '3D model viewer. Drag to rotate, scroll to zoom.', 'تھری ڈی ماڈل ویور۔ گھمانے کے لیے ڈریگ کریں، زوم کے لیے اسکرول کریں۔', 'Visor de modelos 3D. Arrastra para girar, desplaza para acercar.', 'Visionneuse de modèles 3D. Faites glisser pour tourner, défilez pour zoomer.', '3D 模型查看器。拖动旋转，滚轮缩放。', 'عارض النماذج ثلاثية الأبعاد. اسحب للتدوير ومرّر للتكبير.', '3D model görüntüleyici. Döndürmek için sürükleyin, yakınlaştırmak için kaydırın.'],
 
-  ['exp.eyebrow', '05 · Animation', '05 · اینیمیشن', '05 · Animación', '05 · Animation', '05 · 动画', '05 · الحركة', '05 · Animasyon'],
+  ['exp.eyebrow', '05 · Render', '05 · رینڈر', '05 · Render', '05 · Rendu', '05 · 渲染', '05 · الريندر', '05 · Render'],
   ['exp.h2', 'Education and experience', 'تعلیم اور تجربہ', 'Educación y experiencia', 'Formation et expérience', '教育与经历', 'التعليم والخبرة', 'Eğitim ve deneyim'],
   ['exp.p', 'This is a dope sheet. Drag the playhead or press play to move through my education and experience.', 'یہ ایک ڈوپ شیٹ ہے۔ پلے ہیڈ کو کھینچیں یا پلے دبائیں اور میری تعلیم اور تجربے کو دیکھیں۔', 'Esto es una dope sheet. Arrastra el cabezal o pulsa reproducir para recorrer mi formación y experiencia.', 'Voici une dope sheet. Faites glisser la tête de lecture ou appuyez sur lecture pour parcourir ma formation et mon expérience.', '这是一张摄影表（dope sheet）。拖动播放头或点击播放，浏览我的教育和工作经历。', 'هذه لوحة مفاتيح الحركة (dope sheet). اسحب مؤشر التشغيل أو اضغط تشغيل لتتصفح تعليمي وخبرتي.', 'Bu bir dope sheet. Oynatma çubuğunu sürükleyin veya oynata basarak eğitimim ve deneyimim arasında gezinin.'],
   ['tl.play', 'Play', 'چلائیں', 'Reproducir', 'Lecture', '播放', 'تشغيل', 'Oynat'],

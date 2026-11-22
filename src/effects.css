@@ -49,3 +49,6 @@ html.fx-morph-hide .sec-home h1 { opacity: 0; transition: opacity 0.08s; }
 .ll-log li:last-child { color: var(--mut); }
 .ll-meta { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 6px; }
 @media (prefers-reduced-motion: reduce) { .fx-ov { display: none; } }
+
+.fx-snd.pending { animation: fxpulse 1.8s ease-in-out infinite; }
+@keyframes fxpulse { 50% { box-shadow: 0 0 0 5px rgba(255, 159, 126, 0.22); } }

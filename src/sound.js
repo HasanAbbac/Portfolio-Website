@@ -61,10 +61,10 @@ const SFX = {
   // Bubble burst: a quick spray of tiny pops
   scatter: () => { for (let i = 0; i < 9; i++) setTimeout(() => { if (!ac) return; const f = 500 + Math.random() * 1200; voice('sine', f, f * 1.5, 0.07, 0.05, sfx, 0.4); }, i * 28); },
   // Soft whoosh: an airy sweep with a low rise
-  section: (a = 1) => { noiseBurst(180, 3200, 0.9, 0.2 * a, 0.8, 0.6, -0.7); voice('sine', 70, 190, 0.9, 0.05 * a, sfx, 0.3, 0, 0.3); },
+  section: (a = 1, dur = 0.9) => { noiseBurst(180, 3200, dur, 0.2 * a, 0.8, 0.6, -0.7); voice('sine', 70, 190, dur, 0.05 * a, sfx, 0.3, 0, 0.3); },
 };
 // nothing plays while the starting loading screen is up
-const fire = (kind, arg) => { if (!live() || !st.sfx || root.classList.contains('fx-loading')) return; SFX[kind](arg); };
+const fire = (kind, arg, arg2) => { if (!live() || !st.sfx || root.classList.contains('fx-loading')) return; SFX[kind](arg, arg2); };
 
 /* ---------- speaker button: mute / unmute the sound effects ---------- */
 const ICON_ON = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
@@ -76,14 +76,16 @@ if (tools) tools.insertBefore(btn, tools.firstChild); else document.body.appendC
 function syncUi() {
   btn.innerHTML = st.sfx ? ICON_ON : ICON_OFF;
   btn.setAttribute('aria-pressed', String(st.sfx));
+  btn.classList.toggle('pending', st.sfx && !st.running);
   btn.setAttribute('aria-label', st.sfx ? 'Sound effects on, click to mute' : 'Sound effects off, click to unmute');
-  btn.title = st.sfx ? 'Mute sound effects' : 'Unmute sound effects';
+  btn.title = st.sfx ? (st.running ? 'Mute sound effects' : 'Sound effects start at your first click or key press') : 'Unmute sound effects';
 }
 // try to start; resolves true when the browser lets us make sound
 async function wake() {
   ensure();
   if (ac.state === 'suspended') { try { await ac.resume(); } catch { /* needs a gesture */ } }
   st.running = ac.state === 'running';
+  if (!ac.onstatechange) ac.onstatechange = () => { st.running = ac.state === 'running'; if (st.running && st.sfx) { master.gain.setTargetAtTime(MASTER, now(), 0.15); } syncUi(); };
   if (st.running && st.sfx) { master.gain.cancelScheduledValues(now()); master.gain.setTargetAtTime(MASTER, now(), 0.15); }
   syncUi(); return st.running;
 }
@@ -100,18 +102,26 @@ function setSfx(v) {
 }
 btn.addEventListener('click', (e) => { e.stopPropagation(); setSfx(!st.sfx); });
 // the first click, tap or key press anywhere unlocks audio (browser rule)
-const unlock = () => { if (st.sfx) wake(); if (st.running) { ['pointerdown', 'keydown', 'touchstart'].forEach((ev) => removeEventListener(ev, unlock, true)); } };
-['pointerdown', 'keydown', 'touchstart'].forEach((ev) => addEventListener(ev, unlock, true));
+// (mouse-wheel scrolling is NOT a gesture the browser accepts, so a visitor who only scrolls stays silent until the first click, tap or key press)
+const GESTURES = ['pointerdown', 'mousedown', 'click', 'keydown', 'touchstart', 'touchend'];
+const unlock = () => { if (st.sfx) wake(); if (st.running) GESTURES.forEach((ev) => removeEventListener(ev, unlock, true)); };
+GESTURES.forEach((ev) => addEventListener(ev, unlock, true));
+document.addEventListener('visibilitychange', () => { if (!document.hidden && st.sfx && ac && ac.state !== 'running') wake(); });
 if (st.sfx) wake(); // works at once if the browser already trusts the page
 syncUi();
 
 /* ---------- triggers ---------- */
 document.addEventListener('click', (e) => { if (live() && e.target.closest && e.target.closest('a,button,.card,[role=button]') && !e.target.closest('.fx-snd')) fire('click'); }, true);
-let lastSection = 0;
-const sectionSound = (a) => { const n = performance.now(); if (n - lastSection < 1400) return; lastSection = n; fire('section', a); };
-addEventListener('fx:transition', () => sectionSound(1));
 addEventListener('fx:scatter', () => fire('scatter'));
+// Section change: exactly one whoosh each time the active section changes, whatever caused it (wheel, keys, swipe, nav or pipeline click).
+// A ripple jump plays its whoosh when the ripple starts, so the swell peaks just as the screen is covered; the section switch that happens
+// in the middle of the ripple then stays quiet instead of playing a second one.
+let lastWhoosh = 0, quietUntil = 0;
+const whooshNow = (dur) => { const n = performance.now(); if (n - lastWhoosh < 250) return; lastWhoosh = n; fire('section', 1, dur); };
+addEventListener('fx:transition', () => { quietUntil = performance.now() + 1150; whooshNow(1.1); });
 let lastStage = root.dataset.stage;
-new MutationObserver(() => { if (root.dataset.stage !== lastStage) { lastStage = root.dataset.stage; sectionSound(0.55); } }).observe(root, { attributes: true, attributeFilter: ['data-stage'] });
-let lastY = scrollY, lastW = 0;
-addEventListener('scroll', () => { const d = Math.abs(scrollY - lastY); lastY = scrollY; const n = performance.now(); if (live() && d > 70 && n - lastW > 900) { lastW = n; sectionSound(0.35); } }, { passive: true });
+new MutationObserver(() => {
+  const now_ = root.dataset.stage; if (now_ === lastStage) return; lastStage = now_;
+  if (performance.now() < quietUntil) return;
+  whooshNow(0.9);
+}).observe(root, { attributes: true, attributeFilter: ['data-stage'] });

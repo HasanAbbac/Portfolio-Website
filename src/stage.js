@@ -28,7 +28,7 @@ function layoutAt(table, idx) {
 
 // Browsers keep models for a day. The ?v= number is part of the cache key, so raise it whenever avatar-hero.glb is replaced:
 // returning visitors then download the new file at once instead of seeing the old avatar until their cache expires.
-const AVATAR_URL = '/models/avatar-hero.glb?v=3';
+const AVATAR_URL = '/models/avatar-hero.glb?v=4';
 
 const POINT_VERT = /* glsl */ `
   uniform float uTime; uniform float uForm; uniform float uSize; uniform float uScale;
@@ -432,8 +432,9 @@ export function createStage(canvas) {
 
     // sweeps
     const s0 = ramp(I, 0.45, 0.85);
-    const s1 = ramp(I, 1.15, 1.5);
-    const s2 = ramp(I, 1.75, 2.4);
+    // each look is fully on screen exactly when its section is active: 1 Wireframe, 2 Solid (clay), 3 Material (textured), 4 Render (lit)
+    const s1 = ramp(I, 1.25, 1.75); // wireframe -> solid
+    const s2 = ramp(I, 2.25, 2.75); // solid -> material
     const b0 = bound(s0, ls), b1 = bound(s1, ls), b2 = bound(s2, ls);
     planes.pts.constant = -b0;
     planes.wireLo.constant = -b1; planes.wireHi.constant = b0;
@@ -481,8 +482,10 @@ export function createStage(canvas) {
     pMat.uniforms.uForm.value = form;
     pMat.uniforms.uTime.value = reduce ? 0 : time;
 
-    // lights ramp up at the Render stage
-    const lk = ramp(I, 2.55, 3.2);
+    // the full light setup (key, rim, fill) is on by the time Material is reached, so Material and Render are lit the same way
+    const lk = ramp(I, 2.25, 2.75);
+    // the platform under the feet is there in every section; it simply rises as the intro dots finish gathering
+    const pk = ramp(form, 0.2, 0.7);
     const lkv = Math.max(lk, rv * 0.85 * (1 - ramp(I, 0.75, 0.9))); // the textured avatar at the top is lit like the finished render
     hemi.intensity = lerp(0.95, 0.42, lkv);
     key.intensity = lerp(0.35, 2.7, lkv);
@@ -491,12 +494,14 @@ export function createStage(canvas) {
 
     // pedestal, shadow, floor
     pedestal.position.set(avatar.position.x, feetY, 0);
-    pedestal.scale.set(ls, Math.max(0.001, lk), ls);
-    pedRing.material.opacity = lk * 0.95;
-    pedestal.visible = lk > 0.01;
+    pedestal.scale.set(ls, Math.max(0.001, pk), ls);
+    pedRing.material.opacity = pk * 0.95;
+    pedestal.visible = pk > 0.01;
+    // the platform is lit by the same lights, so before they are fully on it gets a little glow of its own and looks the same in every section
+    pedMat.emissive.copy(pedMat.color); pedMat.emissiveIntensity = (1 - lkv) * 0.32;
     shadow.position.set(avatar.position.x, feetY + 0.004, 0);
     shadow.scale.setScalar(ls);
-    shadow.material.opacity = Math.max(ramp(I, 1.3, 2.2) * 0.55, rv * 0.5 * (1 - ramp(I, 0.75, 0.9))) * (1 - lk * 0.6);
+    shadow.material.opacity = Math.max(ramp(I, 1.5, 2.3) * 0.55, rv * 0.5 * (1 - ramp(I, 0.75, 0.9))) * (1 - pk * 0.6);
     floor.position.y = feetY - 0.004;
     floor.material.uniforms.uCenter.value.set(avatar.position.x, 0, 0);
 
