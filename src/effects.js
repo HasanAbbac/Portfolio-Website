@@ -96,7 +96,7 @@ document.addEventListener('click', (e) => {
 // freely (no walls, they fade out with distance), and when the mouse leaves they fly back and the solid heading returns.
 const heroH1 = $('.sec-home h1'), heroSec = $('.sec-home');
 const hero = { c: null, ctx: null, parts: [], words: [], state: 'idle', w: 0, h: 0, ready: false, cols: [], calm: 0, auto: 0 };
-const heroOk = () => heroH1 && heroSec && !reduce && flags.hero && root.dir !== 'rtl' && !root.classList.contains('rtl');
+const heroOk = () => heroH1 && heroSec && !reduce && flags.hero && !root.classList.contains('lab-assembling') && root.dir !== 'rtl' && !root.classList.contains('rtl');
 const HPAD = 10;
 // where the name box is right now (viewport coordinates), so particles follow the heading if the page has scrolled
 function heroBase() {

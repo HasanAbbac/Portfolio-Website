@@ -1,0 +1,102 @@
+/* FEATURE LAB: styles for the sandbox Lab panel and the visual features.
+   Every rule is scoped to html.lab-<feature> (or to an element the feature itself creates), so switching a feature off restores the original look. */
+
+/* ---------- panel ---------- */
+.lab-btn { position: fixed; z-index: 80; left: 14px; bottom: 72px; display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line2); background: rgba(var(--panel-rgb), 0.96); color: var(--ink); font: 500 0.78rem var(--mono); letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; box-shadow: 0 8px 22px rgba(var(--shade-rgb), 0.35); }
+.lab-btn b { color: var(--accent-text); font-weight: 500; }
+.lab-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 0 3px rgba(255, 159, 126, 0.25); }
+.lab-btn.all-off .lab-dot { background: var(--faint); box-shadow: none; }
+.lab-btn:hover, .lab-btn:focus-visible { border-color: var(--orange); }
+.lab-panel { position: fixed; z-index: 81; left: 14px; bottom: 118px; width: min(400px, calc(100vw - 28px)); max-height: calc(100svh - 150px); overflow: auto; border-radius: 16px; border: 1px solid var(--line2); background: rgba(var(--panel-rgb), 0.98); box-shadow: 0 24px 60px rgba(var(--shade-rgb), 0.5); padding: 14px; }
+.lab-panel[hidden] { display: none; }
+.lab-panel header { display: grid; gap: 4px; margin-bottom: 6px; }
+.lab-panel header small { color: var(--mut); font-size: 0.78rem; line-height: 1.35; }
+.lab-panel h3 { margin: 14px 0 2px; font: 500 0.7rem var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-text); }
+.lab-panel ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.lab-panel li { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; padding: 8px 4px; border-top: 1px solid var(--line2); }
+.lab-panel li b { display: block; font-size: 0.86rem; }
+.lab-panel li small { display: block; color: var(--mut); font-size: 0.74rem; line-height: 1.35; margin-top: 2px; }
+.lab-sw { position: relative; width: 40px; height: 22px; border-radius: 999px; border: 0; background: var(--faint); cursor: pointer; flex: none; transition: background 0.2s; margin-top: 2px; }
+.lab-sw[aria-checked='true'] { background: var(--orange); }
+.lab-knob { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform 0.2s; }
+.lab-sw[aria-checked='true'] .lab-knob { transform: translateX(18px); }
+.lab-panel footer { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+@media (max-width: 860px) { .lab-btn { bottom: 14px; } .lab-panel { bottom: 62px; } }
+
+/* ================= TEXT AND TYPOGRAPHY ================= */
+
+/* ---------- word-by-word headings: a clean rise, no blur ---------- */
+.lab-words .lw, .lab-mixed .lw { display: inline-block; vertical-align: bottom; }
+.lab-words .lw { overflow: hidden; padding: 0.04em 0 0.16em; margin-bottom: -0.16em; }
+.lab-words .lwi { display: inline-block; transform: translateY(115%); opacity: 0; transition: transform 0.3s ease, opacity 0.25s ease; }
+.lab-words h2.lw-in .lwi { transform: none; opacity: 1; transition: transform 0.85s cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i) * 130ms), opacity 0.6s ease calc(var(--i) * 130ms); }
+@media (prefers-reduced-motion: reduce) { .lab-words .lwi, .lab-words h2.lw-in .lwi { transition: none; transform: none; opacity: 1; } }
+
+/* ---------- mixed-style headlines: the last word is slanted, gradient-filled and underlined ---------- */
+.lab-mixed h2:not([data-chars]) .lw:last-of-type { position: relative; padding-inline: 0.1em 0.3em; margin-inline: -0.02em -0.16em; }
+.lab-mixed h2:not([data-chars]) .lw:last-of-type .lwi { font-style: italic; color: var(--orange); background: linear-gradient(100deg, var(--orange) 10%, #ffd7a1 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; padding: 0 0.2em 0 0.04em; margin-inline-end: -0.2em; }
+.lab-mixed h2:not([data-chars]) .lw:last-of-type::after { content: ''; position: absolute; left: 0.1em; right: 0.34em; bottom: 0.03em; height: 0.055em; min-height: 3px; border-radius: 99px; background: linear-gradient(90deg, var(--orange), #ffd7a1); transform: skewX(-18deg) scaleX(1); transform-origin: left center; transition: transform 0.9s cubic-bezier(0.6, 0, 0.2, 1) 0.9s; }
+.lab-words.lab-mixed h2:not(.lw-in) .lw:last-of-type::after { transform: skewX(-18deg) scaleX(0); transition-duration: 0.2s; transition-delay: 0s; }
+[data-theme='light'].lab-mixed h2:not([data-chars]) .lw:last-of-type .lwi { background-image: linear-gradient(100deg, var(--orange) 10%, #c9561f 90%); }
+
+/* ================= MOTION ================= */
+
+/* ---------- slide-up panels: every panel rises from below, clearly visible but not slow ---------- */
+html.lab-slide .rv { transition: opacity 0.9s cubic-bezier(0.2, 0.7, 0.2, 1), transform 1.05s cubic-bezier(0.2, 0.8, 0.2, 1); }
+html.lab-slide .rv:not(.in) { transform: translateY(90px); }
+html.lab-slide #queue .card:not(.lab-seen) { opacity: 0; }
+html.lab-slide #queue .card.lab-seen { animation: labcardin 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; animation-delay: calc(var(--lab-ci, 0) * 110ms); }
+@keyframes labcardin { from { opacity: 0; transform: translateY(70px); } }
+
+/* ================= CARDS AND IMAGES ================= */
+
+/* ---------- image reveals (clip-path wipe only: no transform, and the final state is held so nothing flashes when it ends) ---------- */
+html.lab-imgs #queue .card:not(.lab-imgrdy) .card-t img { clip-path: inset(0 100% 0 0); }
+html.lab-imgs #queue .card.lab-imgrdy .card-t img { clip-path: inset(0 0 0 0); animation: labimg 1s cubic-bezier(0.7, 0, 0.2, 1) both; animation-delay: calc(var(--lab-ci, 0) * 90ms); }
+@keyframes labimg { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+
+/* ---------- skeleton shimmers ---------- */
+.lab-skel::after { content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none; background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.16) 50%, transparent 70%) 0 0 / 220% 100%; animation: labshimmer 1.1s linear infinite; }
+@keyframes labshimmer { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+
+/* ================= POLISH ================= */
+
+/* ---------- accent selection and scrollbar ---------- */
+html.lab-select { scrollbar-color: var(--orange) rgba(var(--bg-rgb), 0.9); scrollbar-width: thin; accent-color: var(--orange); }
+html.lab-select ::selection { background: var(--orange); color: var(--orange-ink); }
+html.lab-select input, html.lab-select textarea { caret-color: var(--orange); }
+
+/* ---------- springy controls ---------- */
+html.lab-micro .btn, html.lab-micro .tool-btn, html.lab-micro .pf button, html.lab-micro .pm-seg button, html.lab-micro .chat-fab, html.lab-micro .pipe button { transition: transform 0.45s cubic-bezier(0.34, 1.8, 0.5, 1), background 0.2s, border-color 0.2s, box-shadow 0.2s; }
+html.lab-micro .btn:hover:not(:active), html.lab-micro .tool-btn:hover:not(:active), html.lab-micro .pf button:hover:not(:active) { transform: translateY(-2px) scale(1.04); }
+html.lab-micro .btn:active, html.lab-micro .tool-btn:active, html.lab-micro .pf button:active, html.lab-micro .pm-seg button:active, html.lab-micro .chat-fab:active, html.lab-micro .pipe button:active { transform: scale(0.9); transition-duration: 0.12s; }
+html.lab-micro .pf button[aria-pressed='true'] { animation: labpop 0.55s cubic-bezier(0.34, 1.8, 0.5, 1); }
+html.lab-micro #themeBtn.lab-spin svg { animation: labspin 0.7s cubic-bezier(0.3, 1.5, 0.5, 1); }
+@keyframes labpop { 0% { transform: scale(0.82); } 60% { transform: scale(1.1); } 100% { transform: none; } }
+@keyframes labspin { from { transform: rotate(-200deg) scale(0.5); } to { transform: none; } }
+
+/* ---------- page-load choreography (plays when the loader's fx-loading class goes away; switching it on replays it) ---------- */
+@keyframes labin { from { opacity: 0; transform: translateY(-26px); } }
+@keyframes labup { from { opacity: 0; transform: translateY(80px); } }
+@keyframes labdown { from { opacity: 0; transform: translateY(-22px); } }
+@keyframes labfromleft { from { opacity: 0; transform: translateX(-28px); } }
+@keyframes labfromright { from { opacity: 0; transform: translateX(28px); } }
+html.lab-intro:not(.fx-loading) .brand { animation: labdown 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 0.05s backwards; }
+html.lab-intro:not(.fx-loading) .tools { animation: labdown 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s backwards; }
+html.lab-intro:not(.fx-loading) .nav { animation: labup 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.5s backwards; }
+html.lab-intro:not(.fx-loading) .pipe { animation: labup 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.65s backwards; }
+html.lab-intro:not(.fx-loading) .sec-home .tag { animation: labin 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.45s backwards; }
+html.lab-intro:not(.fx-loading) .sec-home h1 { animation: labin 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.6s backwards; }
+html.lab-intro:not(.fx-loading) .sec-home .lead { animation: labin 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 1.7s backwards; }
+html.lab-intro:not(.fx-loading) .sec-home .cta { animation: labin 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 1.95s backwards; }
+html.lab-intro:not(.fx-loading) .sec-home .meta { animation: labin 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 2.15s backwards; }
+html.lab-intro:not(.fx-loading) .sec-home .hero-hint { animation: labin 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 2.3s backwards; }
+html.lab-intro:not(.fx-loading) .scroll-cue { animation: labin 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 2.5s backwards; }
+@media (prefers-reduced-motion: reduce) { html.lab-intro .brand, html.lab-intro .tools, html.lab-intro .nav, html.lab-intro .pipe, html.lab-intro .sec-home * { animation: none; } }
+
+/* ---------- hero name: no particle scatter until the name has assembled ---------- */
+html.lab-assembling .fx-hero { display: none !important; }
+html.lab-assembling.fx-morph-hide .sec-home h1 { opacity: 1 !important; }
+
+/* ---------- no white glare on card hover (the glare is the original tilt effect's white radial highlight) ---------- */
+html.lab-noglare .fx-glare { display: none !important; }

@@ -424,6 +424,11 @@ export function createStage(canvas) {
     [pMat, ringMat, sweepDisc.material].forEach((m) => { m.blending = bl; m.needsUpdate = true; });
   }
 
+  // Lab: the avatar can fly in from the side at page load (labArrive). Does nothing unless called.
+  const arrive = { on: false, t: 0, dur: 2.6, side: 1 };
+  let arriveYaw = 0;
+  function labArrive(on = true) { arrive.on = on; arrive.t = 0; arrive.side = (document.documentElement.classList.contains('rtl') ? -1 : 1); if (!on) arriveYaw = 0; }
+
   function update(dt, time, idx, mouse, _timelinePose) {
     idxS += (idx - idxS) * (1 - Math.exp(-dt * 5));
     const I = idxS;
@@ -448,6 +453,14 @@ export function createStage(canvas) {
 
     avatar.scale.setScalar(ls);
     avatar.position.set(lx, ly - centerY * ls, 0);
+    if (arrive.on) { // fly in from the side: slide, rise and spin, easing out
+      arrive.t += dt;
+      const k = Math.min(1, arrive.t / arrive.dur), rem = Math.pow(1 - k, 1.8);
+      avatar.position.x += rem * hw * 1.6 * arrive.side;
+      avatar.position.y -= rem * hh * 0.3;
+      arriveYaw = rem * Math.PI * 1.5 * arrive.side;
+      if (k >= 1) { arrive.on = false; arriveYaw = 0; }
+    }
 
     // sweeps
     const s0 = ramp(I, 0.45, 0.85);
@@ -538,7 +551,7 @@ export function createStage(canvas) {
     const face = -Math.max(-1, Math.min(1, lx / (hw * 0.6 + 0.001))) * 0.38;
     const rotBase = face + Math.sin(I * 1.15) * 0.45 + mx * 0.4;
     if (!orbit.dragging) orbit.yaw += (0 - orbit.yaw) * (1 - Math.exp(-dt * 3.2)); // ease back to the default rotation
-    avatar.rotation.y = (reduce ? face : lerp(rotBase, mx * 0.2, Math.max(tlw * 0.8, pw * 0.85))) + orbit.yaw;
+    avatar.rotation.y = (reduce ? face : lerp(rotBase, mx * 0.2, Math.max(tlw * 0.8, pw * 0.85))) + orbit.yaw + arriveYaw;
 
     // export bounding box
     bbox.material.opacity = ramp(I, 4.5, 5.0) * 0.7;
@@ -593,5 +606,5 @@ export function createStage(canvas) {
     });
   }
 
-  return { update, resize, drawGizmo, stats, renderer, pick, setTheme, orbitStart, orbitMove, orbitEnd, setLayoutX };
+  return { update, resize, drawGizmo, stats, renderer, pick, setTheme, orbitStart, orbitMove, orbitEnd, setLayoutX, labArrive };
 }
