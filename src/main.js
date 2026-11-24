@@ -108,17 +108,22 @@ window.addEventListener('pointermove', (e) => {
 }, { passive: true });
 
 let last = performance.now();
+let stageFailed = 0;
 function frame(now) {
+  requestAnimationFrame(frame); // scheduled first: one failed frame must never stop the page's animation loop
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   const idx = ui.getIdx();
   ui.tick(dt, idx);
   // the 3D scene sleeps while the promo video plays, so the video gets the whole GPU
   if (stage && !document.documentElement.classList.contains('promo-open')) {
-    stage.update(dt, now / 1000, idx, mouse, ui.timelinePose());
-    stage.drawGizmo(gizmo);
+    try {
+      stage.update(dt, now / 1000, idx, mouse, ui.timelinePose());
+      stage.drawGizmo(gizmo);
+    } catch (err) { // a rendering hiccup skips this frame instead of freezing the whole page; reported once
+      if (!stageFailed++) console.warn('3D frame skipped:', err);
+    }
   }
-  requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 

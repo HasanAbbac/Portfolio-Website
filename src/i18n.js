@@ -312,7 +312,7 @@ export function setLang(code, persist = true) {
 export function initialLang() {
   let saved = null;
   try { saved = localStorage.getItem('lang'); } catch { /* storage blocked */ }
-  if (saved && DICT[saved]) return saved;
+  if (saved && Object.prototype.hasOwnProperty.call(DICT, saved)) return saved; // own keys only: a stored value like "constructor" must not count as a language
   const nav = (navigator.language || 'en').slice(0, 2).toLowerCase();
-  return DICT[nav] ? nav : 'en';
+  return Object.prototype.hasOwnProperty.call(DICT, nav) ? nav : 'en';
 }

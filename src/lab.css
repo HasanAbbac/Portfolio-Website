@@ -100,3 +100,8 @@ html.lab-assembling.fx-morph-hide .sec-home h1 { opacity: 1 !important; }
 
 /* ---------- no white glare on card hover (the glare is the original tilt effect's white radial highlight) ---------- */
 html.lab-noglare .fx-glare { display: none !important; }
+
+/* ---------- right-to-left scripts (Arabic, Urdu): no slant (italics do not exist in these scripts), underline grows from the right ---------- */
+html.rtl.lab-mixed h2:not([data-chars]) .lw:last-of-type .lwi { font-style: normal; }
+html.rtl.lab-mixed h2:not([data-chars]) .lw:last-of-type::after { transform: scaleX(1); transform-origin: right center; left: 0.14em; right: 0.1em; }
+html.rtl.lab-words.lab-mixed h2:not(.lw-in) .lw:last-of-type::after { transform: scaleX(0); }

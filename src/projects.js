@@ -312,7 +312,9 @@ export function initProjects(content, onLayout) {
       media.querySelector('.pm-thumbs').addEventListener('click', (e) => {
         const b = e.target.closest('button[data-i]');
         if (!b) return;
-        media.querySelector('.pm-shot-main').src = sh[+b.dataset.i];
+        const main = media.querySelector('.pm-shot-main');
+        main.src = sh[+b.dataset.i];
+        main.alt = `${p.title} screenshot ${+b.dataset.i + 1}`; // keep the description in step with the picture shown
         media.querySelectorAll('.pm-thumbs button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
       });
     } else {

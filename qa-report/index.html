@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Portfolio QA Report</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#14212b; --mut:#4a5a66; --line:#d6dde3; --accent:#c4481b; --ok:#1c7a4a; --warn:#9a6a00; --bad:#b3261e; --info:#1b4fa8; --chip:#eef1f4; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0f1820; --card:#16232e; --ink:#eaf1f5; --mut:#a9bcc7; --line:#2a3b48; --accent:#ff9f7e; --ok:#5fd09a; --warn:#f0c15a; --bad:#ff8f84; --info:#8ab8ff; --chip:#1d2f3c; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  a { color:var(--info); }
+  header.top { padding:28px 20px 8px; max-width:1180px; margin:0 auto; }
+  h1 { font-size:1.7rem; margin:0 0 4px; } h2 { font-size:1.2rem; margin:32px 0 12px; } h3 { font-size:1rem; margin:0; }
+  .sub { color:var(--mut); margin:0; }
+  main { max-width:1180px; margin:0 auto; padding:0 20px 80px; }
+  .grid { display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 16px; }
+  .stat b { display:block; font-size:1.9rem; line-height:1.1; } .stat span { color:var(--mut); font-size:.85rem; }
+  .row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .chip { display:inline-block; padding:2px 10px; border-radius:99px; background:var(--chip); font-size:.78rem; font-weight:600; border:1px solid var(--line); }
+  .PASS,.Fixed { color:var(--ok); } .FAIL,.Open.sev-Medium,.sev-High,.sev-Critical { color:var(--bad); } .PARTIAL,.PARTIALLY { color:var(--warn); } .NOT { color:var(--mut); } .BLOCKED { color:var(--mut); }
+  table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); border-radius:12px; overflow:hidden; font-size:.92rem; }
+  th, td { padding:9px 12px; text-align:left; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { background:var(--chip); font-size:.8rem; text-transform:uppercase; letter-spacing:.04em; }
+  td.num { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .tablewrap { overflow-x:auto; border-radius:12px; }
+  label { font-size:.85rem; color:var(--mut); display:grid; gap:4px; }
+  select, input[type=search] { font:inherit; padding:7px 10px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); min-width:150px; }
+  button { font:inherit; cursor:pointer; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); padding:8px 14px; }
+  button.primary { background:var(--accent); color:#1b0c04; border-color:transparent; font-weight:700; }
+  button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible { outline:3px solid var(--info); outline-offset:2px; }
+  details.issue { background:var(--card); border:1px solid var(--line); border-radius:12px; margin:8px 0; }
+  details.issue summary { padding:12px 16px; cursor:pointer; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  details.issue .body { padding:0 16px 14px; display:grid; gap:8px; }
+  .body dt { font-weight:700; font-size:.82rem; text-transform:uppercase; letter-spacing:.04em; color:var(--mut); margin-top:6px; }
+  .body dd { margin:0; }
+  .note { border-left:4px solid var(--warn); padding:10px 14px; background:var(--card); border-radius:0 8px 8px 0; }
+  .bar { height:8px; border-radius:99px; background:var(--chip); overflow:hidden; min-width:90px; } .bar i { display:block; height:100%; background:var(--ok); }
+  pre { background:var(--chip); padding:12px; border-radius:8px; overflow:auto; white-space:pre-wrap; font-size:.82rem; max-height:260px; }
+  .sr { position:absolute; left:-9999px; }
+  @media print { button, select, input { display:none } details.issue .body { display:grid } }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Portfolio QA report</h1>
+  <p class="sub">Audit date 24 Nov 2026 · project: Hasan Abbasi portfolio · this page is internal and is not part of the public site (it lives outside <code>public/</code>, is not built or deployed, and carries <code>noindex</code>).</p>
+</header>
+<main id="main">
+
+<section aria-labelledby="h-dash">
+  <h2 id="h-dash">Dashboard</h2>
+  <div class="grid" id="dash"></div>
+  <p class="note" style="margin-top:14px"><strong>Read this first.</strong> Scores are the auditor's judgement from the evidence listed in each row, not an automated number. Areas that could not be tested in this environment are marked <em>NOT TESTED</em> or <em>PARTIAL</em> and their scores are provisional. Nothing here is a claim of 10/10: several areas cannot honestly be scored 10 from what was run.</p>
+</section>
+
+<section aria-labelledby="h-test">
+  <h2 id="h-test">Test status</h2>
+  <div class="tablewrap"><table id="tests"><thead><tr><th scope="col">Test</th><th scope="col">Status</th><th scope="col">Evidence / limitation</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section aria-labelledby="h-score">
+  <h2 id="h-score">40-area scorecard</h2>
+  <div class="tablewrap"><table id="score"><thead><tr><th scope="col">#</th><th scope="col">Category</th><th scope="col">Initial</th><th scope="col">Final</th><th scope="col">Status</th><th scope="col">Issues</th><th scope="col">Findings</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section aria-labelledby="h-issues">
+  <h2 id="h-issues">Issue register</h2>
+  <div class="row" role="group" aria-label="Filter issues">
+    <label>Severity<select id="fSev"><option value="">All</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option><option>Enhancement</option></select></label>
+    <label>Status<select id="fStat"><option value="">All</option><option>Fixed</option><option>Open</option></select></label>
+    <label>Category<select id="fCat"><option value="">All</option></select></label>
+    <label>Search<input type="search" id="fQ" placeholder="text, id or file"></label>
+    <button type="button" id="expand">Expand all</button>
+  </div>
+  <p class="sub" id="count" role="status" aria-live="polite"></p>
+  <div id="issues"></div>
+</section>
+
+<section aria-labelledby="h-fix">
+  <h2 id="h-fix">Fixing the remaining issues</h2>
+  <p>A static page cannot safely change your code, so there is no fake "fix" button here. The honest alternative: this button builds a ready-to-paste repair brief from the issues that are still <strong>Open</strong>. Paste it into Claude Code in this project, which then applies the fixes, runs the tests and updates this report.</p>
+  <div class="row"><button type="button" class="primary" id="copy">Copy repair brief for open issues</button><span id="copied" role="status" aria-live="polite" class="sub"></span></div>
+  <pre id="brief" tabindex="0" aria-label="Repair brief preview"></pre>
+</section>
+
+<section aria-labelledby="h-limits">
+  <h2 id="h-limits">Not tested / limitations</h2>
+  <ul id="limits"></ul>
+</section>
+</main>
+
+<script>
+/* ===== DATA (every line below comes from something that was actually run or read during the audit) ===== */
+const CATS = [
+ [1,'Complete website functionality',9,9,'PASS','All six sections, theme, language, quick menu, chat, contact and CV work. Journeys B, C, D passed in a real browser.'],
+ [2,'Routes and page coverage',9,9,'PARTIAL','Single-page site with hash sections: deep links, typing a new #hash and reload all land on the right section; unknown paths return HTTP 404. Back does not step between sections because the URL is updated in place (QA-15).'],
+ [3,'Navigation and navbar',9,9,'PASS','Side menu, stage tracker, keyboard focus ring (2px) and anchors work at 320–1024px.'],
+ [4,'UI/UX and visual design',9,9,'PARTIAL','Strong, consistent identity. Light theme reviewed on home, skills, projects and contact; Arabic checked visually. No user testing.'],
+ [5,'Responsive design',8,9,'PARTIAL','320, 360, 390, 768, 1024 px checked for overflow: none. Menu button was clipped at 320 px (QA-01), now fixed. All seven languages show no horizontal overflow at 1024 px. No real devices.'],
+ [6,'Cross-browser compatibility',6,6,'NOT TESTED','Only Chromium-based Chrome was exercised (browser pane and Lighthouse). Firefox, Safari and Edge were not run.'],
+ [7,'Interactive components',9,10,'PASS','Tabs, filters, project popups (3D viewer, video, galleries), both games, promo popup, quick menu (K), chat, theme and language controls all tested and working.'],
+ [8,'Contact form',9,10,'PASS','UI and API: empty, invalid email, too-fast, honeypot, oversized, malformed JSON, rate limit (429), valid submit; error text readable in both themes after QA-02.'],
+ [9,'Email system',9,9,'PARTIAL','Dry-run path tested end to end. A real send was NOT repeated in this audit (it would email the owner); earlier delivery log shows Brevo HTTP 201 on 20 and 21 Nov.'],
+ [10,'AI chatbot and RAG',9,9,'PASS','Grounded answers with sources. 14 abuse and injection cases (prompt leak, role-play, fake history, markup, SSRF, env vars, Arabic injection, bad types, 50-turn history) all refused or answered safely; rate limit returns 429 after 10 requests. Minor ranking issue QA-10.'],
+ [11,'CV and downloads',10,10,'PASS','CV and 8 certificates are valid PDFs (%PDF header, %%EOF trailer); server returns 200 application/pdf.'],
+ [12,'Projects and portfolio content',10,10,'PASS','52 referenced assets all exist; no placeholder projects. External links: GitHub 200, Coursera 200, LinkedIn 999 (its normal bot block, not a defect).'],
+ [13,'Animation and motion',8,8,'PARTIAL','Reduced-motion is honoured in loader, stage, effects and CSS, confirmed by code reading only: it could not be emulated here. Smoothness not measured on real hardware.'],
+ [14,'Image and asset quality',9,9,'PASS','Largest still image 293 KB; models 0.2–2.8 MB; videos load only on demand.'],
+ [15,'3D, WebGL and canvas',8,9,'PARTIAL','Stage, model viewers (wireframe toggle, dispose on close) and both Three.js games render and respond. three.js handles context loss. One transient uniform error seen once in dev (QA-07).'],
+ [16,'Performance',5,5,'FAIL','Lighthouse performance 54–55 desktop and 67–75 mobile; blocking time 0.7–1.5 s (QA-08). Open.'],
+ [17,'Core Web Vitals',6,6,'PARTIAL','Lab values only: LCP 2.5 s desktop / 2.3–2.8 s mobile, CLS 0.01 / 0. INP cannot be measured in a lab run, so it is not reported.'],
+ [18,'Low-end device performance',5,5,'PARTIAL','Lighthouse mobile applies 4x CPU and slow-4G throttling: still usable (interactive 3.9–5.1 s) but heavy. No real low-end device.'],
+ [19,'SEO',10,10,'PASS','Lighthouse SEO 100 on desktop and mobile; JSON-LD, Open Graph, robots.txt and sitemap.xml generated. Canonical needs SITE_URL at build (automatic on Vercel).'],
+ [20,'Accessibility (WCAG 2.2 AA)',8,9,'PARTIAL','axe-core: 1 violation initially, 0 after fixes (dark); light-theme contrast fixed. Lighthouse 100. No screen-reader or manual WCAG review.'],
+ [21,'Frontend code quality',9,9,'PASS','ESLint clean. Large single files (i18n.js, style.css) but readable and commented.'],
+ [22,'Backend and API',9,9,'PASS','Validation, 400/404/413/429 handling, JSON errors, rate limits all behaved correctly.'],
+ [23,'Security',9,9,'PARTIAL','Strong CSP and headers, path traversal blocked, npm audit 0 vulnerabilities. CORS: no cross-origin access is granted (preflight 404, no CORS headers). CSRF is not applicable (no cookies or sessions) and cross-site simple posts (form-encoded, text/plain) are rejected. No penetration test.'],
+ [24,'Environment configuration',9,9,'PASS','.env is git-ignored; .env.example documents every variable; no secret found in source.'],
+ [25,'Dependency security and quality',9,9,'PASS','0 known vulnerabilities (production). Newer major versions exist (vite 8, express 5, eslint 10) but upgrading is optional and risky.'],
+ [26,'Error handling',10,10,'PASS','Backend outage: contact keeps typed text and shows a clear message; chat shows a retry message; both recover when the server returns.'],
+ [27,'Console and network',8,8,'PARTIAL','Zero failed requests and a clean console on load in production (Lighthouse errors-in-console passes). One dev-server three.js error seen once (QA-07).'],
+ [28,'Content quality',8,8,'PARTIAL','Content reads clearly in English; Arabic, Urdu, Chinese, Turkish and Spanish were checked for layout only, not proofread.'],
+ [29,'Design system',9,9,'PARTIAL','Consistent tokens (colours, radius, shadows, type). Reviewed visually.'],
+ [30,'Microinteractions and UI states',9,9,'PARTIAL','Hover, focus, busy, error and success states present on key controls.'],
+ [31,'Privacy and data handling',9,9,'PASS','No cookies or analytics; localStorage holds only language, theme and sound; form page states how data is used.'],
+ [32,'Deployment and production readiness',8,8,'PARTIAL','Production build, headers (vercel.json) and server tested locally. The live site itself was not tested.'],
+ [33,'GitHub and repository hygiene',8,8,'PARTIAL','.gitignore correct, tree clean. A temporary submission/ folder is committed (QA-12).'],
+ [34,'Browser storage and session behaviour',9,10,'PASS','Invalid stored values (language "constructor", theme "bogus", sound "garbage") no longer cause problems.'],
+ [35,'Network and offline behaviour',8,8,'PARTIAL','API outage and reconnect tested for contact and chat. No offline mode exists (not a requirement).'],
+ [36,'Caching and resource delivery',9,9,'PARTIAL','Cache headers defined per asset type (immutable for hashed assets). CDN behaviour not testable locally.'],
+ [37,'Visual regression testing',6,6,'NOT TESTED','Screenshots were taken and inspected by eye. No automated baseline comparison was set up.'],
+ [38,'Automated testing',7,7,'PARTIAL','66 server/RAG tests pass. No browser end-to-end tests exist in the repository (QA-11).'],
+ [39,'End-to-end user journeys',7,8,'PARTIAL','B (contact), C (CV), D (chat), G (outage and reconnect) passed. A, E, F only partly: emulated phone widths, no real devices.'],
+ [40,'Final overall quality',8,8,'PARTIAL','Distinctive, secure and well built. Main gap is load-time main-thread cost (QA-08).']
+];
+const ISSUES = [
+ {id:'QA-01',cat:5,sev:'Medium',status:'Fixed',title:'Menu button pushed off-screen at 320 px width',desc:'On the narrowest phones the header (logo, four tool buttons, menu button) was wider than the screen and the menu button was cut off.',evidence:'Measured menu-button right edge at 347 px in a 320 px viewport; screenshot shows the half-visible button. After the fix: 310 px, all six header items inside the screen.',loc:'src/style.css (new @media (max-width: 350px) block)',repro:'Open the site at 320 px width and look at the top-right corner.',exp:'Menu button fully visible and tappable.',act:'Button partly outside the viewport.',fix:'Tighter header padding and gaps, smaller language select on screens up to 350 px.',ver:'Re-measured at 320 px: right edge 310 px, no horizontal scroll (scrollWidth 320).'},
+ {id:'QA-02',cat:20,sev:'Medium',status:'Fixed',title:'Form error text unreadable in the light theme (contrast 1.89:1)',desc:'Error messages in the contact form used pale salmon (#ffa595) on a white panel in light theme.',evidence:'axe-core color-contrast: 1.89 against the required 4.5:1 on #formStatus (and the same colour on .err).',loc:'src/style.css (.err, .status[data-kind=error], invalid-field border)',repro:'Switch to light theme, submit the empty contact form.',exp:'Error text at least 4.5:1.',act:'1.89:1.',fix:'Deeper red (#b3261e, about 6:1) for light theme only; dark theme unchanged.',ver:'Triggered the error state in light theme: computed colour rgb(179,38,30); axe colour-contrast returned no violations.'},
+ {id:'QA-03',cat:20,sev:'Medium',status:'Fixed',title:'Decorative canvas layers exposed to assistive technology',desc:'The hero particle canvas and other effect layers were not inside any landmark and not hidden from screen readers.',evidence:'axe-core "region" violation on .fx-hero (1 node).',loc:'src/effects.js (mk helper)',repro:'Run axe on the home page after the page loads.',exp:'Decorative layers ignored by screen readers.',act:'Reported as content outside landmarks.',fix:'All layers created by mk() now get aria-hidden="true".',ver:'axe re-run: 0 violations, 50 passed rules.'},
+ {id:'QA-04',cat:20,sev:'Low',status:'Fixed',title:'Loader text below 12 px and tiny Skip button',desc:'Loading-screen log text was 11.5–11.8 px and the Skip button about 22 px tall.',evidence:'Lighthouse mobile font-size audit: 21% legible text, best-practices 96. After: font-size audit passes, best-practices 100.',loc:'src/effects.css (.ll-log, .ll-meta, .ll-skip)',repro:'Run Lighthouse mobile on the home page.',exp:'Text at least 12 px, touch target at least 24 px.',act:'Below both.',fix:'0.75rem text and larger Skip padding.',ver:'Lighthouse mobile re-run: best-practices 100.'},
+ {id:'QA-05',cat:27,sev:'Medium',status:'Fixed',title:'One failed 3D frame could stop the whole animation loop',desc:'The page loop scheduled its next frame only after the 3D update. Any exception inside the 3D render would end all animation and scroll syncing for the rest of the visit.',evidence:'Code inspection of src/main.js frame(); a three.js error was seen in the dev console (QA-07).',loc:'src/main.js (frame loop)',repro:'Make stage.update throw once.',exp:'Skip that frame and carry on.',act:'Loop would end permanently.',fix:'Next frame is scheduled first; the 3D update is wrapped in try/catch and logs a single warning.',ver:'Lint, 66 tests and production build pass; page behaved normally in the browser afterwards. A fault was not deliberately injected, so this is verified by inspection and regression only.'},
+ {id:'QA-06',cat:34,sev:'Low',status:'Fixed',title:'Stored language value "constructor" was accepted as valid',desc:'The saved language was checked with DICT[saved], which is truthy for inherited object keys.',evidence:'Code inspection of src/i18n.js initialLang().',loc:'src/i18n.js',repro:'localStorage.lang = "constructor", reload.',exp:'Falls back to English.',act:'Treated as a language.',fix:'Own-property check for both the saved value and the browser language.',ver:'Reloaded with lang="constructor", theme="bogus", sfx="garbage": page loaded in English, dark, sound on, no crash.'},
+ {id:'QA-07',cat:15,sev:'Low',status:'Open',title:'three.js "firstElem.toArray is not a function" seen once in the dev console',desc:'One uncaught error from a uniform upload during the first render, seen on the Vite dev server.',evidence:'Console stack: flatten, setValueV4fArray, WebGLUniforms.upload, WebGLRenderer.render, stage.js:566. Not seen again over several reloads, and not present in the production build (Lighthouse errors-in-console passes).',loc:'src/stage.js (render call, clipping-plane materials)',repro:'Not reproducible on demand.',exp:'No console errors.',act:'Single intermittent error in dev.',fix:'Now non-fatal because of QA-05. Root cause not isolated.',ver:'Not verified. Needs a debug session reproducing the first-frame timing.'},
+ {id:'QA-08',cat:16,sev:'Medium',status:'Open',title:'High main-thread work at load (Lighthouse performance 54–55 desktop, 67–75 mobile)',desc:'Blocking time is 0.7–0.8 s on desktop and 1.0–1.5 s on throttled mobile. Most of it is the render-style loading screen and 3D stage start-up running on the main thread.',evidence:'Lighthouse 12: TBT 780/710 ms desktop, 1050/1520 ms mobile; bootup: main bundle 12.5 s CPU under 4x throttle; longest tasks 372, 349 ms (main bundle), 335 ms (stage), 185 ms (three).',loc:'src/loader.js, src/stage.js, src/main.js',repro:'npx lighthouse http://localhost:3011 (production server).',exp:'Performance 90+, TBT under 200 ms.',act:'See evidence.',fix:'Not changed: the loading screen and 3D intro are signature features, so reducing them is a design decision. Options: shorter or one-time loader, slice the loader drawing into smaller tasks, defer more start-up work.',ver:'Measured twice per device; numbers vary by about 10 points run to run.'},
+ {id:'QA-09',cat:16,sev:'Enhancement',status:'Open',title:'Render-blocking requests delay first paint',desc:'flag.js (about 300 ms), the main stylesheet (about 600 ms on throttled mobile) and fonts.css block rendering.',evidence:'Lighthouse render-blocking-resources.',loc:'index.html, public/flag.js',repro:'Lighthouse mobile run.',exp:'Minimal blocking.',act:'Three blocking resources.',fix:'Not changed (flag.js must run before paint to hide the page behind the loader). Could inline critical CSS.',ver:'n/a'},
+ {id:'QA-10',cat:10,sev:'Low',status:'Open',title:'"Which tools does Hasan use?" leads with soft skills',desc:'The answer opens with soft skills and interests, then lists the tools. Correct but the most relevant part comes second.',evidence:'POST /api/chat with that question; answer text began with "soft skills are problem solving...".',loc:'server/rag (retrieval ranking and prompt)',repro:'Ask the question in the chat.',exp:'Tools first.',act:'Soft skills first.',fix:'Not changed: would need retrieval tuning and re-running rag:eval.',ver:'n/a'},
+ {id:'QA-11',cat:38,sev:'Enhancement',status:'Open',title:'No browser end-to-end tests in the repository',desc:'The 66 tests cover server and RAG only. UI journeys were checked by hand in this audit and are not repeatable by CI.',evidence:'test/ contains hardening, providers, rag, server tests only.',loc:'test/',repro:'n/a',exp:'A small Playwright suite for contact, chat and CV.',act:'None.',fix:'Not added: would need a new dev dependency; worth doing if the project continues.',ver:'n/a'},
+ {id:'QA-13',cat:20,sev:'Low',status:'Fixed',title:'Screenshot description did not change when another thumbnail was chosen',desc:'In a project gallery the large picture changed but its alt text stayed "screenshot 1", so screen-reader users heard the wrong description.',evidence:'In the Ultimate Car Racing gallery, choosing thumbnail 3 left alt="Ultimate Car Racing screenshot 1".',loc:'src/projects.js (gallery thumbnail click handler)',repro:'Open a project with screenshots, choose the third thumbnail, read the alt text of the main image.',exp:'Alt text names the picture shown.',act:'Always screenshot 1.',fix:'The handler now updates alt together with src.',ver:'Re-tested in the browser: thumbnail 3 now gives alt "Ultimate Car Racing screenshot 3" and thumbnail 5 gives "screenshot 5" (the picture changes with it).'},
+ {id:'QA-14',cat:4,sev:'Low',status:'Fixed',title:'Slanted last word in Arabic and Urdu headings',desc:'The mixed-style headline applied a synthetic italic slant to the last word. Arabic and Urdu scripts have no italics, so it looked distorted.',evidence:'Arabic About heading checked visually: last word slanted before the fix, upright after.',loc:'src/lab.css (new html.rtl.lab-mixed rules)',repro:'Switch language to Arabic or Urdu and look at any section heading.',exp:'Upright gradient word with underline.',act:'Slanted word.',fix:'No slant for right-to-left pages; underline grows from the right.',ver:'Computed font-style is now normal on the Arabic heading; zoomed screenshot checked.'},
+ {id:'QA-15',cat:2,sev:'Enhancement',status:'Open',title:'Browser Back does not step between sections',desc:'Choosing a section updates the address (#about, #skills) in place, so the history does not grow. Pressing Back leaves the site instead of returning to the previous section. Deep links, typing a new hash and reload all work.',evidence:'history.length stayed 3 after clicking About then Skills; Back from #skills went to the previous page.',loc:'src/ui.js (section navigation)',repro:'Click About, then Skills, then press the browser Back button.',exp:'Optional: Back returns to About.',act:'Leaves the site.',fix:'Not changed: this is a common choice for scroll-driven single pages and changing it would fill the history. Decide if you want pushState on navigation clicks.',ver:'n/a'},
+ {id:'QA-12',cat:33,sev:'Low',status:'Open',title:'Temporary submission/ folder is on the public GitHub repo; the .aep embeds a PC name and username',desc:'submission/Hasan Abbasi.aep links footage at C:\\Users\\Ali\\Downloads and records the machine name DESKTOP-KQAR8CQ. It is committed and pushed. The folder is meant to be removed after about a week.',evidence:'Strings inside the .aep file; git ls-files submission.',loc:'submission/',repro:'git ls-files submission',exp:'No personal machine details in a public repo.',act:'Present in the repository.',fix:'Not changed: the files are needed for the submission; the owner asked to remove them later.',ver:'n/a'}
+];
+const TESTS = [
+ ['Production build','PASS','vite build succeeds in about 5 s.'],
+ ['Lint (ESLint)','PASS','No warnings or errors.'],
+ ['Automated tests','PASS','66 of 66 pass (server, hardening, RAG, providers).'],
+ ['Dependency audit','PASS','npm audit (production): 0 vulnerabilities.'],
+ ['Security headers and path probing','PASS','CSP, HSTS, X-Frame-Options, nosniff present; /.env, /server/index.js and ../ return 404.'],
+ ['Contact API (dry-run)','PASS','Validation, honeypot, too-fast, oversize, malformed JSON, rate limit 429.'],
+ ['Contact form in browser','PASS','Empty, invalid and valid submission; typed text kept on failure; retry works after reconnect.'],
+ ['Real email delivery','PARTIALLY VERIFIED','Not re-sent in this audit. Existing delivery log shows Brevo HTTP 201 on 20 and 21 Nov.'],
+ ['Chatbot (API and UI)','PASS','Grounded, refuses unsupported and injection prompts, follow-up, French, Escape closes.'],
+ ['CV and certificate downloads','PASS','Valid PDFs served as application/pdf.'],
+ ['Accessibility (axe-core)','PASS','0 violations after fixes in dark theme; contrast re-checked in light theme.'],
+ ['Lighthouse desktop','PARTIALLY VERIFIED','Accessibility 100, best practices 100, SEO 100, performance 54–55 (see QA-08).'],
+ ['Lighthouse mobile','PARTIALLY VERIFIED','Accessibility 100, best practices 100 (after fix), SEO 100, performance 67–75.'],
+ ['Responsive layout','PARTIALLY VERIFIED','320, 360, 390, 768, 1024 px; emulation only.'],
+ ['Backend outage and recovery','PASS','Clear messages, no data loss, recovers when the API returns.'],
+ ['Invalid browser storage','PASS','Bad language, theme and sound values handled.'],
+ ['Playable games (2)','PASS','Neon Collector: starts, scoring, drone hits, lives, pause and restart work. 3D Target Clicker: starts, hit registered (score, accuracy). Both fit the popup and Escape closes it.'],
+ ['Project popups','PASS','3D viewer (wireframe/material, rendered-image tab, resources released on close), video with playback, screenshot galleries (all images load), focus returns to the card on close.'],
+ ['Promo video popup and quick menu (K)','PASS','Promo: 55 s video plays, pauses on close, focus returns. K opens the menu, filtering works, Enter navigates, Escape closes.'],
+ ['Languages and right-to-left layout','PASS','Arabic checked visually; Urdu, Chinese, Turkish, Spanish checked for direction, fonts and overflow (none).'],
+ ['Light theme visuals','PASS','Home, skills, projects and contact reviewed; readable and consistent.'],
+ ['Hash navigation, reload and Back/Forward','PARTIALLY VERIFIED','Deep links, new hash and reload work; Back leaves the site by design (QA-15).'],
+ ['Reduced motion','NOT TESTED','Could not be emulated in this environment; code reading shows it is honoured.'],
+ ['CORS and CSRF','PASS','No CORS headers or preflight support; cross-site form-encoded and text/plain posts rejected; no cookies or sessions to abuse.'],
+ ['Chatbot abuse and injection (14 cases)','PASS','Prompt-leak, role-play, fake history, markup, SSRF, env-var and Arabic injection attempts all refused or answered safely; 429 after 10 quick requests.'],
+ ['Firefox, Safari, Edge','NOT TESTED','Not available in this environment.'],
+ ['macOS and Linux','NOT TESTED','Only Windows was available. Server and build are plain Node and should be portable, which is an assessment, not a test.'],
+ ['Real mobile devices and touch','NOT TESTED','Emulated viewports only.'],
+ ['Screen reader (NVDA, VoiceOver)','NOT TESTED','Automated and keyboard checks only.'],
+ ['Live deployed site','BLOCKED','The live address is not recorded in the project, so the deployed site was not tested.'],
+ ['Automated visual regression','NOT TESTED','No baseline tooling in the project.']
+];
+const LIMITS = [
+ 'Only Windows and a Chromium browser were used. Firefox, Safari, macOS, Linux and real phones were not tested.',
+ 'The live deployed site was not tested (its address is not in the project). Everything ran on local servers.',
+ 'Real email was not sent again during this audit to avoid emailing the owner; earlier delivery evidence is in docs/email-proof.',
+ 'Reduced-motion could not be emulated; it is confirmed by code reading only.',
+ 'Browser end-to-end tests were not added, and the translations were not proofread.',
+ 'Lighthouse and the browser pane use software rendering for 3D, so frame rate, GPU memory and smoothness were not measured.',
+ 'INP (interaction to next paint) needs real-user data and is not reported.',
+ 'Scores in the scorecard are judgement calls; partial and not-tested areas are provisional.'
+];
+
+/* ===== RENDER ===== */
+const $ = (s, r = document) => r.querySelector(s);
+const sum = (a, i) => a.reduce((t, r) => t + r[i], 0);
+const avg = (i) => (sum(CATS, i) / CATS.length).toFixed(1);
+const fixed = ISSUES.filter(i => i.status === 'Fixed').length, open = ISSUES.length - fixed;
+const count = (s) => ISSUES.filter(i => i.sev === s).length;
+const countO = (s) => ISSUES.filter(i => i.sev === s && i.status === 'Open').length;
+const stat = (n, l) => `<div class="card stat"><b>${n}</b><span>${l}</span></div>`;
+$('#dash').innerHTML = [
+  stat(avg(2) + ' / 10', 'Initial overall score'), stat(avg(3) + ' / 10', 'Final overall score'),
+  stat(ISSUES.length, 'Issues found'), stat(fixed, 'Fixed and re-tested'), stat(open, 'Remaining open'),
+  stat(count('Critical') + ' / ' + count('High'), 'Critical / High'), stat(count('Medium') + ' (' + countO('Medium') + ' open)', 'Medium'),
+  stat(count('Low') + ' (' + countO('Low') + ' open)', 'Low'), stat(count('Enhancement'), 'Enhancements'),
+  stat('Requires minor work', 'Readiness verdict')
+].join('');
+const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const cls = (s) => s.split(' ')[0];
+$('#tests tbody').innerHTML = TESTS.map(t => `<tr><td>${esc(t[0])}</td><td><span class="chip ${cls(t[1])}">${esc(t[1])}</span></td><td>${esc(t[2])}</td></tr>`).join('');
+$('#score tbody').innerHTML = CATS.map(c => { const n = ISSUES.filter(i => i.cat === c[0]).length; return `<tr><td class="num">${c[0]}</td><th scope="row">${esc(c[1])}</th><td class="num">${c[2]}</td><td class="num"><b>${c[3]}</b></td><td><span class="chip ${cls(c[4])}">${esc(c[4])}</span></td><td class="num">${n || '–'}</td><td>${esc(c[5])}</td></tr>`; }).join('');
+$('#fCat').innerHTML += CATS.map(c => `<option value="${c[0]}">${c[0]}. ${esc(c[1])}</option>`).join('');
+$('#limits').innerHTML = LIMITS.map(l => `<li>${esc(l)}</li>`).join('');
+
+function issueHtml(i) {
+  const c = CATS.find(x => x[0] === i.cat);
+  return `<details class="issue" data-id="${i.id}"><summary><strong>${i.id}</strong><span class="chip sev-${i.sev}">${i.sev}</span><span class="chip ${i.status} ${i.status === 'Open' ? 'sev-' + i.sev : ''}">${i.status}</span><span>${esc(i.title)}</span></summary>
+  <dl class="body"><dt>Category</dt><dd>${i.cat}. ${esc(c[1])}</dd><dt>Description</dt><dd>${esc(i.desc)}</dd><dt>Evidence</dt><dd>${esc(i.evidence)}</dd><dt>Location</dt><dd><code>${esc(i.loc)}</code></dd><dt>Reproduction</dt><dd>${esc(i.repro)}</dd><dt>Expected</dt><dd>${esc(i.exp)}</dd><dt>Actual</dt><dd>${esc(i.act)}</dd><dt>Fix</dt><dd>${esc(i.fix)}</dd><dt>Verification</dt><dd>${esc(i.ver)}</dd></dl></details>`;
+}
+function draw() {
+  const sev = $('#fSev').value, st = $('#fStat').value, cat = $('#fCat').value, q = $('#fQ').value.trim().toLowerCase();
+  const list = ISSUES.filter(i => (!sev || i.sev === sev) && (!st || i.status === st) && (!cat || String(i.cat) === cat) && (!q || JSON.stringify(i).toLowerCase().includes(q)));
+  $('#issues').innerHTML = list.map(issueHtml).join('') || '<p class="sub">No issues match these filters.</p>';
+  $('#count').textContent = `${list.length} of ${ISSUES.length} issues shown`;
+}
+['fSev', 'fStat', 'fCat'].forEach(id => $('#' + id).addEventListener('change', draw));
+$('#fQ').addEventListener('input', draw);
+let all = false;
+$('#expand').addEventListener('click', (e) => { all = !all; document.querySelectorAll('details.issue').forEach(d => { d.open = all; }); e.target.textContent = all ? 'Collapse all' : 'Expand all'; });
+draw();
+
+function brief() {
+  const o = ISSUES.filter(i => i.status === 'Open');
+  return 'Repair brief for the portfolio project (D:\\Portfolio Website). Fix the open issues below where it is safe and justified, run lint, tests and the production build, re-test each fix, then update qa-report/index.html (status, scores, verification). Do not commit, do not touch Git history, do not expose secrets. Say clearly what could not be fixed.\n\n' +
+    o.map((i, n) => `${n + 1}. [${i.id}] (${i.sev}) ${i.title}\n   Where: ${i.loc}\n   Evidence: ${i.evidence}\n   Suggested direction: ${i.fix}`).join('\n\n') +
+    '\n\nNotes: QA-08 and QA-09 touch the signature loading screen, so ask before removing or shortening it. QA-12 is deliberate until the owner says to delete the submission files.';
+}
+$('#brief').textContent = brief();
+$('#copy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(brief()); $('#copied').textContent = 'Copied. Paste it into Claude Code.'; }
+  catch { $('#brief').focus(); const r = document.createRange(); r.selectNodeContents($('#brief')); getSelection().removeAllRanges(); getSelection().addRange(r); $('#copied').textContent = 'Copy was blocked here: the text is selected, press Ctrl+C.'; }
+});
+</script>
+</body>
+</html>

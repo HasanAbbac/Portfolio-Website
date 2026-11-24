@@ -2,7 +2,7 @@
 const $ = (s, r = document) => r.querySelector(s);
 const root = document.documentElement;
 const css = (n) => getComputedStyle(root).getPropertyValue(n).trim() || '#888';
-const mk = (tag, cls, parent = document.body) => { const e = document.createElement(tag); if (cls) e.className = cls; parent.appendChild(e); return e; };
+const mk = (tag, cls, parent = document.body) => { const e = document.createElement(tag); if (cls) e.className = cls; e.setAttribute('aria-hidden', 'true'); parent.appendChild(e); return e; }; // purely decorative layers: hidden from screen readers
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const coarse = matchMedia('(pointer: coarse)').matches;
 

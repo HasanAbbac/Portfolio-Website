@@ -359,6 +359,9 @@ h2 { font-size: clamp(2.2rem, 4.6vw, 3.9rem); font-weight: 800; line-height: 1; 
 .status { font: 400 0.78rem/1.4 var(--mono); color: var(--faint); flex: 1; min-width: 180px; }
 .status[data-kind='ok'] { color: var(--teal-text); }
 .status[data-kind='error'] { color: #ffa595; }
+/* the pale salmon error colour is unreadable on the white light-theme panel (1.9:1): a deeper red there (about 6:1) */
+[data-theme='light'] .err, [data-theme='light'] .status[data-kind='error'] { color: #b3261e; }
+[data-theme='light'] .field [aria-invalid='true'] { border-color: #b3261e; }
 .status[data-kind='busy'] { color: var(--accent-text); }
 
 .foot-copy { margin: 0; }
@@ -592,6 +595,13 @@ html.rtl .lang-sel { text-align: start; }
   .top { gap: 8px; }
 }
 @media (max-width: 420px) { #cmdBtn { display: none; } }
+/* very small phones (320 px wide): tighter header so the menu button is not pushed off the right edge */
+@media (max-width: 350px) {
+  .top { padding-inline: 10px; gap: 4px; }
+  .tools { gap: 4px; }
+  .tool-btn { padding: 0 6px; }
+  .lang-sel { max-width: 64px; padding-inline: 6px; font-size: 0.76rem; }
+}
 
 /* ---------- popup: local video + screenshot gallery ---------- */
 .pm-video { width: 100%; height: 100%; object-fit: contain; background: #000; display: block; }
