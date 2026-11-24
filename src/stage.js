@@ -431,6 +431,7 @@ export function createStage(canvas) {
 
   function update(dt, time, idx, mouse, _timelinePose) {
     idxS += (idx - idxS) * (1 - Math.exp(-dt * 5));
+    if (!Number.isFinite(idxS)) idxS = Number.isFinite(idx) ? idx : 0; // a bad number must never stick: it would break every later frame
     const I = idxS;
     mx += (mouse.x - mx) * (1 - Math.exp(-dt * 3));
     my += (mouse.y - my) * (1 - Math.exp(-dt * 3));
@@ -446,6 +447,7 @@ export function createStage(canvas) {
     lx += (L.x * hw - lx) * (1 - Math.exp(-dt * 4));
     ly += (L.y * hh - ly) * (1 - Math.exp(-dt * 4));
     ls += (L.s - ls) * (1 - Math.exp(-dt * 4));
+    if (!Number.isFinite(lx) || !Number.isFinite(ly) || !Number.isFinite(ls)) { lx = Number.isFinite(L.x * hw) ? L.x * hw : 0; ly = Number.isFinite(L.y * hh) ? L.y * hh : 0; ls = Number.isFinite(L.s) ? L.s : 1; } // never let a NaN stay in the layout state
 
     camera.position.set(mx * 0.35, 0.55 + my * 0.2, dist);
     camera.lookAt(0, 0, 0);
@@ -479,6 +481,9 @@ export function createStage(canvas) {
     reveal += (rvTarget - reveal) * (1 - Math.exp(-dt * (rvTarget ? 2.2 : 5)));
     const rv = reveal < 0.003 ? 0 : reveal > 0.997 ? 1 : reveal;
     planes.rev.constant = rv > 0 ? -b0 : -1000;
+    // A non-finite clipping plane (for example from a zero-size first frame) makes three.js throw while uploading the shader
+    // uniforms ("firstElem.toArray is not a function"); a harmless value is used for that frame instead.
+    for (const k in planes) if (!Number.isFinite(planes[k].constant)) planes[k].constant = 0;
     pMat.uniforms.uFade.value = Math.min(1 - rv, 1 - ramp(form, 0.5, 0.95)); // the dots thin out as they land
     finalMatList.forEach((m) => {
       const t = rv > 0 && rv < 1;

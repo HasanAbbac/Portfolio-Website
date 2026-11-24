@@ -1,6 +1,4 @@
-// VISUAL FEATURES (formerly the sandbox "Feature Lab"). Twelve features, all ON. Everything lives in this file and lab.css.
-// To bring back the on/off panel (bottom-left "Lab" button) for testing, set SHOW_PANEL to true.
-const SHOW_PANEL = false;
+// VISUAL FEATURES: twelve front-end touches, all always on. Everything lives in this file and lab.css.
 import './lab.css';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -10,29 +8,22 @@ const reduce = () => window.matchMedia('(prefers-reduced-motion: reduce)').match
 const fine = () => window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
-const GROUPS = ['Text and typography', 'Motion', 'Cards and images', 'Polish'];
 const FEATURES = [
-  { g: 0, id: 'words', title: 'Word-by-word headings', desc: 'Headings rise in one word at a time.' },
-  { g: 0, id: 'assemble', title: 'Hero name assembles', desc: 'After the loader, "Hasan Abbasi" resolves from scrambled letters.' },
-  { g: 0, id: 'mixed', title: 'Mixed-style headlines', desc: 'The last word of each heading is slanted, filled with a warm gradient and underlined.' },
-  { g: 1, id: 'avatarIn', title: 'Avatar flies in from the side', desc: 'After the loader the avatar slides in from the right, rising and spinning into place, instead of appearing static.' },
-  { g: 1, id: 'slide', title: 'Slide-up panels', desc: 'Every panel and card rises from below with a clear, medium-speed slide.' },
-  { g: 2, id: 'imgs', title: 'Image reveals', desc: 'Project thumbnails unmask with a wipe and a slight zoom-out.' },
-  { g: 2, id: 'skeleton', title: 'Skeleton shimmers', desc: 'Project images show a soft shimmer while they load.' },
-  { g: 3, id: 'noglare', title: 'No white glare on card hover', desc: 'Removes the white highlight that follows the cursor over project cards.' },
-  { g: 3, id: 'cursorHome', title: 'Cursor starts near the bottom', desc: 'On load the coral cursor dot waits at a set spot (lower middle-right) until you move the mouse.' },
-  { g: 3, id: 'select', title: 'Accent selection and scrollbar', desc: 'Text selection, scrollbar and form caret use the accent colour.' },
-  { g: 3, id: 'micro', title: 'Springy controls', desc: 'Buttons, tabs and the theme button respond with small springy motions.' },
-  { g: 3, id: 'intro', title: 'Page-load choreography', desc: 'After the loader, the menu, name, text and buttons arrive in a planned order.' },
+  { id: 'words', title: 'Word-by-word headings' },
+  { id: 'assemble', title: 'Hero name assembles' },
+  { id: 'mixed', title: 'Mixed-style headlines' },
+  { id: 'avatarIn', title: 'Avatar flies in from the side' },
+  { id: 'slide', title: 'Slide-up panels' },
+  { id: 'imgs', title: 'Image reveals' },
+  { id: 'skeleton', title: 'Skeleton shimmers' },
+  { id: 'noglare', title: 'No white glare on card hover' },
+  { id: 'cursorHome', title: 'Cursor starts near the bottom' },
+  { id: 'select', title: 'Accent selection and scrollbar' },
+  { id: 'micro', title: 'Springy controls' },
+  { id: 'intro', title: 'Page-load choreography' },
 ];
-const KEY = 'lab.flags.v4';
 const flags = {};
-function loadFlags() {
-  let saved = {};
-  try { saved = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { /* private mode */ }
-  FEATURES.forEach((f) => { flags[f.id] = SHOW_PANEL && f.id in saved ? saved[f.id] === true : true; });
-}
-function saveFlags() { try { localStorage.setItem(KEY, JSON.stringify(flags)); } catch { /* ignore */ } }
+FEATURES.forEach((f) => { flags[f.id] = true; });
 
 const modules = {};
 
@@ -227,42 +218,7 @@ modules.micro = (() => {
 
 modules.intro = { on() {}, off() {} }; // pure CSS (html.lab-intro plays once the loader's fx-loading class is gone; toggling it on replays it)
 
-/* ================================================================== THE LAB PANEL */
-function setFlag(id, on) {
-  flags[id] = on;
-  root.classList.toggle(`lab-${id}`, on);
-  modules[id][on ? 'on' : 'off']();
-  saveFlags();
-}
-function buildPanel() {
-  const btn = document.createElement('button');
-  btn.className = 'lab-btn'; btn.type = 'button'; btn.id = 'labBtn';
-  btn.setAttribute('aria-haspopup', 'dialog'); btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', 'labPanel');
-  const panel = document.createElement('section');
-  panel.className = 'lab-panel'; panel.id = 'labPanel'; panel.hidden = true; panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-label', 'Feature lab');
-  const list = GROUPS.map((gname, gi) => `<h3>${gname}</h3><ul>${FEATURES.filter((f) => f.g === gi).map((f) => `<li><button type="button" class="lab-sw" role="switch" data-id="${f.id}" aria-checked="false"><span class="lab-knob"></span></button><div><b>${f.title}</b><small>${f.desc}</small></div></li>`).join('')}</ul>`).join('');
-  panel.innerHTML = `<header><b>Feature Lab</b><small>Sandbox only. Switch each feature on or off to compare with the original.</small></header>${list}<footer><button type="button" class="btn btn-small" data-all="1">All on</button><button type="button" class="btn btn-small" data-all="0">All off (original site)</button></footer>`;
-  document.body.append(btn, panel);
-  const sync = () => {
-    $$('.lab-sw', panel).forEach((s) => s.setAttribute('aria-checked', String(!!flags[s.dataset.id])));
-    const n = FEATURES.filter((f) => flags[f.id]).length;
-    btn.innerHTML = `<span class="lab-dot"></span>Lab <b>${n}/${FEATURES.length}</b>`;
-    btn.classList.toggle('all-off', n === 0);
-  };
-  btn.addEventListener('click', () => { panel.hidden = !panel.hidden; btn.setAttribute('aria-expanded', String(!panel.hidden)); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !panel.hidden && !document.querySelector('dialog[open]')) { panel.hidden = true; btn.setAttribute('aria-expanded', 'false'); btn.focus(); } });
-  panel.addEventListener('click', (e) => {
-    const sw = e.target.closest('.lab-sw');
-    if (sw) { setFlag(sw.dataset.id, !flags[sw.dataset.id]); sync(); return; }
-    const all = e.target.closest('[data-all]');
-    if (all) { FEATURES.forEach((f) => { if (flags[f.id] !== (all.dataset.all === '1')) setFlag(f.id, all.dataset.all === '1'); }); sync(); }
-  });
-  sync();
-}
-
 export function initLab() {
-  loadFlags();
-  if (SHOW_PANEL) buildPanel();
   // classes first (so CSS-only features like the intro are ready before the loader ends), the scripted parts once the page exists
   FEATURES.forEach((f) => root.classList.toggle(`lab-${f.id}`, flags[f.id]));
   if (flags.assemble) root.classList.add('lab-assembling'); // from the very start of the page load

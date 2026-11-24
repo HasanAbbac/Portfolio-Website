@@ -87,9 +87,17 @@ document.addEventListener('click', (e) => {
   const id = a.getAttribute('href').slice(1), el = id && document.getElementById(id); if (!el) return;
   const top = el.getBoundingClientRect().top + scrollY;
   if (Math.abs(top - scrollY) < innerHeight * 0.55) return;
-  e.preventDefault(); history.replaceState(null, '', '#' + id);
+  e.preventDefault(); if (location.hash !== '#' + id) history.pushState(null, '', '#' + id); // a real history entry, so Back returns to the previous section like it does for short jumps
   window.scrollTo({ top, behavior: 'smooth' });
 }, true);
+
+// Browser Back / Forward: each long section jump is a real history entry (above), so go to the section named in the address.
+// The browser's own scroll restoration is switched off for this page so the two never fight; the address is the single source of truth.
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+addEventListener('popstate', () => {
+  const id = location.hash.slice(1), el = id ? document.getElementById(id) : null;
+  window.scrollTo({ top: el ? el.getBoundingClientRect().top + scrollY : 0, behavior: 'smooth' });
+});
 
 /* ============ hero particle name ============ */
 // The heading looks exactly as normal. When the mouse comes onto the name it turns into round particles that drift away

@@ -1,27 +1,4 @@
-/* FEATURE LAB: styles for the sandbox Lab panel and the visual features.
-   Every rule is scoped to html.lab-<feature> (or to an element the feature itself creates), so switching a feature off restores the original look. */
-
-/* ---------- panel ---------- */
-.lab-btn { position: fixed; z-index: 80; left: 14px; bottom: 72px; display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line2); background: rgba(var(--panel-rgb), 0.96); color: var(--ink); font: 500 0.78rem var(--mono); letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; box-shadow: 0 8px 22px rgba(var(--shade-rgb), 0.35); }
-.lab-btn b { color: var(--accent-text); font-weight: 500; }
-.lab-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 0 3px rgba(255, 159, 126, 0.25); }
-.lab-btn.all-off .lab-dot { background: var(--faint); box-shadow: none; }
-.lab-btn:hover, .lab-btn:focus-visible { border-color: var(--orange); }
-.lab-panel { position: fixed; z-index: 81; left: 14px; bottom: 118px; width: min(400px, calc(100vw - 28px)); max-height: calc(100svh - 150px); overflow: auto; border-radius: 16px; border: 1px solid var(--line2); background: rgba(var(--panel-rgb), 0.98); box-shadow: 0 24px 60px rgba(var(--shade-rgb), 0.5); padding: 14px; }
-.lab-panel[hidden] { display: none; }
-.lab-panel header { display: grid; gap: 4px; margin-bottom: 6px; }
-.lab-panel header small { color: var(--mut); font-size: 0.78rem; line-height: 1.35; }
-.lab-panel h3 { margin: 14px 0 2px; font: 500 0.7rem var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-text); }
-.lab-panel ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
-.lab-panel li { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; padding: 8px 4px; border-top: 1px solid var(--line2); }
-.lab-panel li b { display: block; font-size: 0.86rem; }
-.lab-panel li small { display: block; color: var(--mut); font-size: 0.74rem; line-height: 1.35; margin-top: 2px; }
-.lab-sw { position: relative; width: 40px; height: 22px; border-radius: 999px; border: 0; background: var(--faint); cursor: pointer; flex: none; transition: background 0.2s; margin-top: 2px; }
-.lab-sw[aria-checked='true'] { background: var(--orange); }
-.lab-knob { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform 0.2s; }
-.lab-sw[aria-checked='true'] .lab-knob { transform: translateX(18px); }
-.lab-panel footer { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-@media (max-width: 860px) { .lab-btn { bottom: 14px; } .lab-panel { bottom: 62px; } }
+/* Styles for the visual features in lab.js. Every rule is scoped to html.lab-<feature> or to an element the feature itself creates. */
 
 /* ================= TEXT AND TYPOGRAPHY ================= */
 

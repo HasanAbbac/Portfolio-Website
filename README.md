@@ -30,6 +30,9 @@ Before you deploy, set `SITE_URL` (for example `SITE_URL=https://your-domain.com
 ```bash
 npm test                  # form validation, spam checks, rate limit, 404 handling, and the RAG pipeline
 ```
+```bash
+npm run build && npm run test:e2e   # browser tests: opens the real site in Chrome/Edge (dry-run mail), walks navigation, Back/Forward, contact form, popups, 320 px phone, chat
+```
 A GitHub Actions workflow (`.github/workflows/ci.yml`) runs lint, build, tests and a dependency audit on every push.
 
 ## Contact form and email

@@ -18,7 +18,8 @@
     "rag:ask": "node scripts/rag-ask.mjs",
     "cv:build": "node scripts/cv-build.mjs",
     "mail:test": "node scripts/send-test-email.mjs",
-    "mail:status": "node scripts/mail-status.mjs"
+    "mail:status": "node scripts/mail-status.mjs",
+    "test:e2e": "node --test \"test/e2e/*.e2e.mjs\""
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.11.0",
@@ -38,6 +39,7 @@
     "concurrently": "^9.0.0",
     "eslint": "^9.39.5",
     "globals": "^17.14.0",
+    "playwright-core": "^1.50.1",
     "vite": "^6.0.0"
   },
   "engines": {

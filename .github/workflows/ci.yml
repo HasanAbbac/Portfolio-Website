@@ -14,3 +14,7 @@ jobs:
       - run: npm run build
       - run: npm test
       - run: npm audit --omit=dev --audit-level=high
+      # Browser end-to-end tests (real Chrome on the runner, mail in dry-run mode). Kept non-blocking until it has run green on GitHub
+      # a few times: it was only verified on Windows. Remove "continue-on-error" to make it a required check.
+      - run: npm run test:e2e
+        continue-on-error: true
