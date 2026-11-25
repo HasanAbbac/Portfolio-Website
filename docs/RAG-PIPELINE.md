@@ -48,13 +48,13 @@ function (`server/rag/embed.js`). If your course requires Gemini embeddings, swi
 with your key and set `RAG_MIN_SCORE` to the best threshold it prints.
 
 ## Measured quality (`npm run rag:eval`)
-A fixed set of 22 questions the documents can answer and 14 they cannot (weather, football, salary, recipes, prompt-injection attempts, and so on):
+A fixed set of 28 questions the documents can answer and 14 they cannot (weather, football, salary, recipes, prompt-injection attempts, and so on):
 
 | Measure | Result |
 |---|---|
-| Correct passage is the top result (in-scope questions) | 22 of 22 |
-| Correct passage in the top 3 | 22 of 22 |
-| In-scope questions answered by the shipped assistant (no LLM) | 22 of 22 |
+| Correct passage is the top result (in-scope questions) | 22 of 28 |
+| Correct passage in the top 3 | 26 of 28 |
+| In-scope questions answered by the shipped assistant (no LLM) | 28 of 28 |
 | Out-of-scope questions refused by the shipped assistant (no LLM) | 12 of 14 |
 
 The two that get a hedged, quoted passage instead of a refusal without an LLM are "What is Hasan's favourite food?" and
